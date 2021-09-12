@@ -1,0 +1,2 @@
+from statistics.db_tables.daily_gas_used import DailyGasUsed
+from statistics.db_tables.daily_transactions_count import DailyTransactionsCount
