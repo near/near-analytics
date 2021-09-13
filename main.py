@@ -4,11 +4,20 @@ import os
 import psycopg2
 import time
 
-from statistics import DailyGasUsed, DailyTransactionsCount
+from statistics import DailyActiveAccountsCount, DailyActiveContractsCount, DailyDeletedAccountsCount, \
+    DailyDepositAmount, DailyGasUsed, DailyNewAccountsCount, DailyNewContractsCount, DailyNewUniqueContractsCount, \
+    DailyTransactionsCount
 
 STATS = {
-    'daily_transactions_count': DailyTransactionsCount,
+    'daily_active_accounts_count': DailyActiveAccountsCount,
+    'daily_active_contracts_count': DailyActiveContractsCount,
+    'daily_deleted_accounts_count': DailyDeletedAccountsCount,
+    'daily_deposit_amount': DailyDepositAmount,
     'daily_gas_used': DailyGasUsed,
+    'daily_new_accounts_count': DailyNewAccountsCount,
+    'daily_new_contracts_count': DailyNewContractsCount,
+    'daily_new_unique_contracts_count': DailyNewUniqueContractsCount,
+    'daily_transactions_count': DailyTransactionsCount,
 }
 
 if __name__ == '__main__':
@@ -30,7 +39,7 @@ if __name__ == '__main__':
             psycopg2.connect(INDEXER_DATABASE_URL) as indexer_connection:
         for statistics_type in args.stats_types or STATS:
             try:
-                aligned_field = f'{statistics_type}...'.ljust(30)
+                aligned_field = f'{statistics_type}...'.ljust(35)
                 print(f'Computing {aligned_field}', end=' ')
                 start_time = time.time()
 
@@ -40,7 +49,9 @@ if __name__ == '__main__':
                 result = statistics.collect_statistics(args.timestamp)
                 statistics.store_statistics(result)
 
-                print(f'Done in {round(time.time() - start_time, 2)} seconds. Result: {result}')
+                print(f'Done in {round(time.time() - start_time, 1)} seconds. Result: {result}')
             except Exception as e:
                 # Let's at least try to collect other stats
+                analytics_connection.rollback()
+                indexer_connection.rollback()
                 print(e)

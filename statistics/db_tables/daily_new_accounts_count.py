@@ -4,35 +4,34 @@ from . import DAY_LEN_SECONDS, daily_start_of_range
 from ..sql_statistics import SqlStatistics
 
 
-class DailyGasUsed(SqlStatistics):
+class DailyNewAccountsCount(SqlStatistics):
     @property
     def sql_create_table(self):
-        # At the moment of September 2021,
-        # we have max 10^15 gas_used per block (read as: per second)
-        # Per day, worst case gives ~10^20 gas_used for each day.
-        # Decided to double this assumption, so we have numeric(40, 0)
+        # Suppose we have at most 10^4 (10K) new accounts per second.
+        # It gives ~10^9 new accounts per day.
+        # It means we fit into integer (10^9)
         return '''
-            CREATE TABLE IF NOT EXISTS daily_gas_used
+            CREATE TABLE IF NOT EXISTS daily_new_accounts_count
             (
                 collected_for_day DATE PRIMARY KEY,
-                gas_used          numeric(40, 0) NOT NULL
+                new_accounts_count INTEGER NOT NULL
             )
         '''
 
     @property
     def sql_select(self):
         return '''
-            SELECT SUM(chunks.gas_used)
-            FROM blocks
-            JOIN chunks ON chunks.included_in_block_hash = blocks.block_hash
-            WHERE blocks.block_timestamp > %(from_timestamp)s
-                AND blocks.block_timestamp < %(to_timestamp)s
+            SELECT COUNT(created_by_receipt_id)
+            FROM accounts
+            JOIN receipts ON receipts.receipt_id = accounts.created_by_receipt_id
+            WHERE receipts.included_in_block_timestamp > %(from_timestamp)s
+                AND receipts.included_in_block_timestamp < %(to_timestamp)s
         '''
 
     @property
     def sql_insert(self):
         return '''
-            INSERT INTO daily_gas_used VALUES (
+            INSERT INTO daily_new_accounts_count VALUES (
                 %(collected_for_day)s,
                 %(result)s
             )
