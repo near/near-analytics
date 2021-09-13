@@ -1,18 +1,18 @@
 import typing
 
-from . import DAY_LEN_SECONDS, daily_start_of_range
+from . import WEEK_LEN_SECONDS, weekly_start_of_range
 from ..sql_statistics import SqlStatistics
 
 
-class DailyActiveAccountsCount(SqlStatistics):
+class WeeklyActiveAccountsCount(SqlStatistics):
     @property
     def sql_create_table(self):
         # For September 2021, we have 10^6 accounts on the Mainnet.
         # It means we fit into integer (10^9)
         return '''
-            CREATE TABLE IF NOT EXISTS daily_active_accounts_count
+            CREATE TABLE IF NOT EXISTS weekly_active_accounts_count
             (
-                collected_for_day     DATE PRIMARY KEY,
+                collected_for_week    DATE PRIMARY KEY, -- start of the week (Monday)
                 active_accounts_count INTEGER NOT NULL
             )
         '''
@@ -31,15 +31,15 @@ class DailyActiveAccountsCount(SqlStatistics):
     @property
     def sql_insert(self):
         return '''
-            INSERT INTO daily_active_accounts_count VALUES (
-                %(collected_for_day)s,
+            INSERT INTO weekly_active_accounts_count VALUES (
+                %(collected_for_week)s,
                 %(result)s
             )
         '''
 
     @property
     def duration_seconds(self):
-        return DAY_LEN_SECONDS
+        return WEEK_LEN_SECONDS
 
     def start_of_range(self, requested_statistics_timestamp: typing.Optional[int]) -> int:
-        return daily_start_of_range(requested_statistics_timestamp)
+        return weekly_start_of_range(requested_statistics_timestamp)

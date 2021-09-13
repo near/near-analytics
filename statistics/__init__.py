@@ -7,3 +7,4 @@ from statistics.db_tables.daily_new_accounts_count import DailyNewAccountsCount
 from statistics.db_tables.daily_new_contracts_count import DailyNewContractsCount
 from statistics.db_tables.daily_new_unique_contracts_count import DailyNewUniqueContractsCount
 from statistics.db_tables.daily_transactions_count import DailyTransactionsCount
+from statistics.db_tables.weekly_active_accounts_count import WeeklyActiveAccountsCount

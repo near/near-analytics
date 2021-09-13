@@ -3,7 +3,7 @@ import datetime
 import psycopg2
 import typing
 
-from .statistics import Statistics
+from .statistics import Statistics, to_nanos
 
 
 class SqlStatistics(Statistics):
@@ -59,7 +59,3 @@ class SqlStatistics(Statistics):
                 self.analytics_connection.commit()
             except psycopg2.errors.UniqueViolation:
                 self.analytics_connection.rollback()
-
-
-def to_nanos(timestamp_seconds):
-    return timestamp_seconds * 1000 * 1000 * 1000

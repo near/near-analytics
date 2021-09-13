@@ -6,7 +6,7 @@ import time
 
 from statistics import DailyActiveAccountsCount, DailyActiveContractsCount, DailyDeletedAccountsCount, \
     DailyDepositAmount, DailyGasUsed, DailyNewAccountsCount, DailyNewContractsCount, DailyNewUniqueContractsCount, \
-    DailyTransactionsCount
+    DailyTransactionsCount, WeeklyActiveAccountsCount
 
 STATS = {
     'daily_active_accounts_count': DailyActiveAccountsCount,
@@ -18,8 +18,10 @@ STATS = {
     'daily_new_contracts_count': DailyNewContractsCount,
     'daily_new_unique_contracts_count': DailyNewUniqueContractsCount,
     'daily_transactions_count': DailyTransactionsCount,
+    'weekly_active_accounts_count': WeeklyActiveAccountsCount,
 }
 
+# TODO check boundaries in SQLs: < > <= >=
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Compute statistics for mainnet')
     parser.add_argument('-t', '--timestamp', type=int,
