@@ -20,3 +20,6 @@ class Statistics(abc.ABC):
     @abc.abstractmethod
     def store_statistics(self, parameters: dict):
         pass
+
+def to_nanos(timestamp_seconds):
+    return timestamp_seconds * 1000 * 1000 * 1000

@@ -7,8 +7,7 @@ from ..sql_statistics import SqlStatistics
 class DailyDeletedAccountsCount(SqlStatistics):
     @property
     def sql_create_table(self):
-        # Suppose we have at most 10^4 (10K) deleted accounts per second.
-        # It gives ~10^9 deleted accounts per day.
+        # For September 2021, we have 10^6 accounts on the Mainnet.
         # It means we fit into integer (10^9)
         return '''
             CREATE TABLE IF NOT EXISTS daily_deleted_accounts_count

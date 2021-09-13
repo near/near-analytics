@@ -7,8 +7,7 @@ from ..sql_statistics import SqlStatistics
 class DailyNewContractsCount(SqlStatistics):
     @property
     def sql_create_table(self):
-        # Suppose we have at most 10^4 (10K) new contracts per second.
-        # It gives ~10^9 new contracts per day.
+        # For September 2021, we have 10^6 accounts on the Mainnet.
         # It means we fit into integer (10^9)
         return '''
             CREATE TABLE IF NOT EXISTS daily_new_contracts_count
