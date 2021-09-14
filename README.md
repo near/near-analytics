@@ -14,5 +14,5 @@ python3.9 -m pip install -r requirements.txt
 
 ### Run
 ```bash
-python3.9 stats.py -h
+python3.9 main.py -h
 ```
