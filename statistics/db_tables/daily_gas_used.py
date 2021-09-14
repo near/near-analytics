@@ -33,7 +33,7 @@ class DailyGasUsed(SqlStatistics):
     def sql_insert(self):
         return '''
             INSERT INTO daily_gas_used VALUES (
-                %(collected_for_day)s,
+                %(time)s,
                 %(result)s
             )
         '''

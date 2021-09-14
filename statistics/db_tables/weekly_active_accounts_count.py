@@ -32,7 +32,7 @@ class WeeklyActiveAccountsCount(SqlStatistics):
     def sql_insert(self):
         return '''
             INSERT INTO weekly_active_accounts_count VALUES (
-                %(collected_for_week)s,
+                %(time)s,
                 %(result)s
             )
         '''
