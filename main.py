@@ -21,7 +21,6 @@ STATS = {
     'weekly_active_accounts_count': WeeklyActiveAccountsCount,
 }
 
-# TODO check boundaries in SQLs: < > <= >=
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Compute statistics for mainnet')
     parser.add_argument('-t', '--timestamp', type=int,

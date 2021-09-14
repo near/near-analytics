@@ -7,15 +7,15 @@ from ..sql_statistics import SqlStatistics
 class DailyGasUsed(SqlStatistics):
     @property
     def sql_create_table(self):
-        # At the moment of September 2021,
-        # we have max 10^15 gas_used per block (read as: per second)
-        # Per day, worst case gives ~10^20 gas_used for each day.
-        # Decided to double this assumption, so we have numeric(40, 0)
+        # In Indexer, we store `chunks.gas_used` in numeric(20,0).
+        # We produce the block each second (10^5).
+        # We plan to use several chunks, let's say max chunks count is 10^3
+        # 28 sounds weird, so I suggest numeric(30, 0)
         return '''
             CREATE TABLE IF NOT EXISTS daily_gas_used
             (
                 collected_for_day DATE PRIMARY KEY,
-                gas_used          numeric(40, 0) NOT NULL
+                gas_used          numeric(30, 0) NOT NULL
             )
         '''
 
@@ -25,7 +25,7 @@ class DailyGasUsed(SqlStatistics):
             SELECT SUM(chunks.gas_used)
             FROM blocks
             JOIN chunks ON chunks.included_in_block_hash = blocks.block_hash
-            WHERE blocks.block_timestamp > %(from_timestamp)s
+            WHERE blocks.block_timestamp >= %(from_timestamp)s
                 AND blocks.block_timestamp < %(to_timestamp)s
         '''
 

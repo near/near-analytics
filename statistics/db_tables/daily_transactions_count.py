@@ -22,7 +22,8 @@ class DailyTransactionsCount(SqlStatistics):
     def sql_select(self):
         return '''
             SELECT COUNT(*) FROM transactions
-            WHERE block_timestamp >= %(from_timestamp)s AND block_timestamp < %(to_timestamp)s
+            WHERE block_timestamp >= %(from_timestamp)s
+                AND block_timestamp < %(to_timestamp)s
         '''
 
     @property

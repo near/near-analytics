@@ -23,7 +23,7 @@ class DailyNewContractsCount(SqlStatistics):
             SELECT COUNT(DISTINCT receipts.receiver_account_id)
             FROM action_receipt_actions
             JOIN receipts ON receipts.receipt_id = action_receipt_actions.receipt_id
-            WHERE receipts.included_in_block_timestamp > %(from_timestamp)s
+            WHERE receipts.included_in_block_timestamp >= %(from_timestamp)s
                 AND receipts.included_in_block_timestamp < %(to_timestamp)s
                 AND action_receipt_actions.action_kind = 'DEPLOY_CONTRACT'
         '''
