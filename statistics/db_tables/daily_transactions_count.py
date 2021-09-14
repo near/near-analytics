@@ -29,7 +29,7 @@ class DailyTransactionsCount(SqlStatistics):
     def sql_insert(self):
         return '''
             INSERT INTO daily_transactions_count VALUES (
-                %(collected_for_day)s,
+                %(time)s,
                 %(result)s
             )
         '''

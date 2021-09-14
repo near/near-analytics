@@ -101,14 +101,14 @@ class DailyNewUniqueContractsCount(SqlStatistics):
 
             new_unique_contracts = [c for c in new_contracts if c not in previous_contracts]
 
-            collected_for_day = datetime.datetime.utcfromtimestamp(from_timestamp).strftime('%Y-%m-%d')
-            return {"collected_for_day": collected_for_day, "result": len(new_unique_contracts)}
+            time = datetime.datetime.utcfromtimestamp(from_timestamp).strftime('%Y-%m-%d')
+            return {"time": time, "result": len(new_unique_contracts)}
 
     @property
     def sql_insert(self):
         return '''
             INSERT INTO daily_new_unique_contracts_count VALUES (
-                %(collected_for_day)s,
+                %(time)s,
                 %(result)s
             )
         '''

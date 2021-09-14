@@ -31,7 +31,7 @@ class DailyDeletedAccountsCount(SqlStatistics):
     def sql_insert(self):
         return '''
             INSERT INTO daily_deleted_accounts_count VALUES (
-                %(collected_for_day)s,
+                %(time)s,
                 %(result)s
             )
         '''

@@ -32,7 +32,7 @@ class DailyActiveAccountsCount(SqlStatistics):
     def sql_insert(self):
         return '''
             INSERT INTO daily_active_accounts_count VALUES (
-                %(collected_for_day)s,
+                %(time)s,
                 %(result)s
             )
         '''

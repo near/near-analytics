@@ -49,8 +49,8 @@ class SqlStatistics(Statistics):
         with self.indexer_connection.cursor() as indexer_cursor:
             indexer_cursor.execute(self.sql_select, sql_parameters)
             result = indexer_cursor.fetchone()[0] or 0
-            collected_for_day = datetime.datetime.utcfromtimestamp(from_timestamp).strftime('%Y-%m-%d')
-            return {"collected_for_day": collected_for_day, "result": result}
+            time = datetime.datetime.utcfromtimestamp(from_timestamp).strftime('%Y-%m-%d')
+            return {"time": time, "result": result}
 
     def store_statistics(self, parameters: dict):
         with self.analytics_connection.cursor() as analytics_cursor:

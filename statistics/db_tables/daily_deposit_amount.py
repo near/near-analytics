@@ -38,7 +38,7 @@ class DailyDepositAmount(SqlStatistics):
     def sql_insert(self):
         return '''
             INSERT INTO daily_deposit_amount VALUES (
-                %(collected_for_day)s,
+                %(time)s,
                 %(result)s
             )
         '''
