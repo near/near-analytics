@@ -24,7 +24,7 @@ class DailyNewAccountsCount(SqlStatistics):
             SELECT COUNT(created_by_receipt_id)
             FROM accounts
             JOIN receipts ON receipts.receipt_id = accounts.created_by_receipt_id
-            WHERE receipts.included_in_block_timestamp > %(from_timestamp)s
+            WHERE receipts.included_in_block_timestamp >= %(from_timestamp)s
                 AND receipts.included_in_block_timestamp < %(to_timestamp)s
         '''
 

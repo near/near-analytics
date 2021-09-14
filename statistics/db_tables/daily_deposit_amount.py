@@ -26,7 +26,7 @@ class DailyDepositAmount(SqlStatistics):
             FROM action_receipt_actions
             JOIN execution_outcomes ON execution_outcomes.receipt_id = action_receipt_actions.receipt_id
             JOIN receipts ON receipts.receipt_id = action_receipt_actions.receipt_id
-            WHERE execution_outcomes.executed_in_block_timestamp > %(from_timestamp)s
+            WHERE execution_outcomes.executed_in_block_timestamp >= %(from_timestamp)s
                 AND execution_outcomes.executed_in_block_timestamp < %(to_timestamp)s
                 AND receipts.predecessor_account_id != 'system'
                 AND action_receipt_actions.action_kind IN ('FUNCTION_CALL', 'TRANSFER')

@@ -1,7 +1,7 @@
 import abc
 import dataclasses
-import typing
 import psycopg2
+import typing
 
 
 @dataclasses.dataclass
@@ -21,5 +21,13 @@ class Statistics(abc.ABC):
     def store_statistics(self, parameters: dict):
         pass
 
+
 def to_nanos(timestamp_seconds):
     return timestamp_seconds * 1000 * 1000 * 1000
+
+
+def time_range_json(from_timestamp, duration):
+    return {
+        "from_timestamp": to_nanos(from_timestamp),
+        "to_timestamp": to_nanos(from_timestamp + duration)
+    }

@@ -3,7 +3,7 @@ import datetime
 import psycopg2
 import typing
 
-from .statistics import Statistics, to_nanos
+from .statistics import Statistics, time_range_json
 
 
 class SqlStatistics(Statistics):
@@ -41,13 +41,8 @@ class SqlStatistics(Statistics):
 
     def collect_statistics(self, requested_statistics_timestamp: typing.Optional[int]) -> dict:
         from_timestamp = self.start_of_range(requested_statistics_timestamp)
-        to_timestamp = from_timestamp + self.duration_seconds
-        sql_parameters = {
-            "from_timestamp": to_nanos(from_timestamp),
-            "to_timestamp": to_nanos(to_timestamp)
-        }
         with self.indexer_connection.cursor() as indexer_cursor:
-            indexer_cursor.execute(self.sql_select, sql_parameters)
+            indexer_cursor.execute(self.sql_select, time_range_json(from_timestamp, self.duration_seconds))
             result = indexer_cursor.fetchone()[0] or 0
             time = datetime.datetime.utcfromtimestamp(from_timestamp).strftime('%Y-%m-%d')
             return {"time": time, "result": result}

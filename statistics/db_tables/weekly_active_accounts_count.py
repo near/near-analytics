@@ -23,7 +23,7 @@ class WeeklyActiveAccountsCount(SqlStatistics):
             SELECT COUNT(DISTINCT transactions.signer_account_id)
             FROM transactions
             JOIN execution_outcomes ON execution_outcomes.receipt_id = transactions.converted_into_receipt_id
-            WHERE transactions.block_timestamp > %(from_timestamp)s
+            WHERE transactions.block_timestamp >= %(from_timestamp)s
                 AND transactions.block_timestamp < %(to_timestamp)s
                 AND execution_outcomes.status IN ('SUCCESS_VALUE', 'SUCCESS_RECEIPT_ID')
         '''
