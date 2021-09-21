@@ -1,14 +1,15 @@
 import datetime
-import time
 import typing
 
-from . import DAY_LEN_SECONDS, daily_start_of_range, GENESIS_SECONDS
+from . import DAY_LEN_SECONDS, daily_start_of_range, time_json
 from ..periodic_statistics import PeriodicStatistics
-from ..statistics import to_nanos
 
 
 # This metric depends both on Indexer data, and on `deployed_contracts` table in Analytics DB.
 class DailyNewUniqueContractsCount(PeriodicStatistics):
+    def dependencies(self) -> list:
+        return ['deployed_contracts']
+
     @property
     def sql_create_table(self):
         # For September 2021, we have 10^6 accounts on the Mainnet.
@@ -40,7 +41,7 @@ class DailyNewUniqueContractsCount(PeriodicStatistics):
 
     @property
     def sql_select_all(self):
-        # It's not a good idea to calculate it through one select
+        # It's not a good idea to calculate it through one select because select will be too complicated
         # We have to fill it by for-cycle on Python level
         raise NotImplementedError
 
@@ -51,13 +52,13 @@ class DailyNewUniqueContractsCount(PeriodicStatistics):
             ON CONFLICT DO NOTHING
         '''
 
-    def collect_statistics(self, requested_timestamp: typing.Optional[int], collect_all: bool) -> list:
-        if collect_all:
-            return self.collect_all_data()
+    def collect_statistics(self, requested_timestamp: typing.Optional[int]) -> list:
+        if not requested_timestamp:
+            raise NotImplementedError
 
         # Get new contracts from Indexer DB. We use `distinct` in SQL,
         # But we still have no guarantees because the contract could be added a week ago
-        new_contracts = super().collect_statistics(requested_timestamp, collect_all=False)
+        new_contracts = super().collect_statistics(requested_timestamp)
 
         all_contract_hashes_select = '''
             SELECT code_sha256
@@ -68,7 +69,7 @@ class DailyNewUniqueContractsCount(PeriodicStatistics):
         from_timestamp = self.start_of_range(requested_timestamp)
         with self.analytics_connection.cursor() as analytics_cursor:
             # Get all contracts that were added before our time range
-            analytics_cursor.execute(all_contract_hashes_select, {'timestamp': to_nanos(from_timestamp)})
+            analytics_cursor.execute(all_contract_hashes_select, time_json(from_timestamp))
             previous_contracts = analytics_cursor.fetchall()
 
             # Find truly unique contracts
@@ -76,17 +77,6 @@ class DailyNewUniqueContractsCount(PeriodicStatistics):
 
             time = datetime.datetime.utcfromtimestamp(from_timestamp).strftime('%Y-%m-%d')
             return [(time, len(new_unique_contracts))]
-
-    def collect_all_data(self):
-        current = GENESIS_SECONDS
-        result = []
-        # TODO check for the last day
-        while current < int(time.time()):
-            value = self.collect_statistics(current, False)
-            print(value)
-            result.extend(value)
-            current += DAY_LEN_SECONDS
-        return result
 
     @property
     def duration_seconds(self):
