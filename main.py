@@ -6,7 +6,11 @@ import time
 
 from statistics import DailyActiveAccountsCount, DailyActiveContractsCount, DailyDeletedAccountsCount, \
     DailyDepositAmount, DailyGasUsed, DailyNewAccountsCount, DailyNewContractsCount, DailyNewUniqueContractsCount, \
-    DailyTransactionsCount, DeployedContracts, WeeklyActiveAccountsCount
+    DailyReceiptsPerContractCount, DailyTransactionsCount, DailyTransactionsPerAccountCount, DeployedContracts, \
+    WeeklyActiveAccountsCount
+from statistics.db_tables import GENESIS_SECONDS, DAY_LEN_SECONDS
+
+from datetime import datetime
 
 STATS = {
     'daily_active_accounts_count': DailyActiveAccountsCount,
@@ -17,24 +21,75 @@ STATS = {
     'daily_new_accounts_count': DailyNewAccountsCount,
     'daily_new_contracts_count': DailyNewContractsCount,
     'daily_new_unique_contracts_count': DailyNewUniqueContractsCount,
+    'daily_receipts_per_contract_count': DailyReceiptsPerContractCount,
     'daily_transactions_count': DailyTransactionsCount,
+    'daily_transactions_per_account_count': DailyTransactionsPerAccountCount,
     'deployed_contracts': DeployedContracts,
     'weekly_active_accounts_count': WeeklyActiveAccountsCount,
 }
 
+# For these statistics, it's unable to compute all historical data by one SELECT query.
+# We have to compute these statistics by pieces
+UNABLE_TO_COMPUTE_ALL_IN_ONCE = (
+    'daily_new_unique_contracts_count',
+    'daily_receipts_per_contract_count',
+    'daily_transactions_per_account_count',
+)
+
+
+def compute(analytics_connection, indexer_connection, statistics_type, statistics, timestamp, collect_all):
+    try:
+        printable_period = 'all period' if not timestamp else f'{datetime.utcfromtimestamp(timestamp).date()}'
+        print(f'Started computing {statistics_type} for {printable_period}')
+        start_time = time.time()
+
+        if collect_all:
+            statistics.drop_table()
+        statistics.create_table()
+
+        timestamp = None if collect_all else (timestamp or int(time.time() - DAY_LEN_SECONDS))
+        result = statistics.collect_statistics(timestamp)
+        statistics.store_statistics(result)
+
+        print(f'Finished computing {statistics_type} in {round(time.time() - start_time, 1)} seconds')
+    except Exception as e:
+        analytics_connection.rollback()
+        indexer_connection.rollback()
+        raise e
+
+
+def compute_statistics(analytics_connection, indexer_connection, statistics_type, timestamp, collect_all):
+    statistics_cls = STATS[statistics_type]
+    statistics = statistics_cls(analytics_connection, indexer_connection)
+
+    for cls in statistics.dependencies():
+        compute_statistics(analytics_connection, indexer_connection, cls, timestamp, collect_all)
+
+    if collect_all and statistics_type in UNABLE_TO_COMPUTE_ALL_IN_ONCE:
+        statistics.drop_table()
+        current_day = GENESIS_SECONDS
+        while current_day < int(time.time()):
+            compute(analytics_connection, indexer_connection, statistics_type, statistics, current_day, False)
+            current_day += DAY_LEN_SECONDS
+    else:
+        compute(analytics_connection, indexer_connection, statistics_type, statistics, timestamp, collect_all)
+
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Compute statistics for mainnet')
+    parser = argparse.ArgumentParser(description='Compute statistics for given Indexer DB')
     parser.add_argument('-t', '--timestamp', type=int,
                         help='The timestamp in seconds precision, indicates the period for computing the statistics. '
-                             'The rounding will be performed. '
-                             'By default, takes the period before the current '
-                             '(yesterday, previous week starting Monday, previous calendar month).')
+                             'The rounding will be performed. By default, takes yesterday. '
+                             'If it\'s not possible to compute the statistics for given period, '
+                             'nothing will be added to the DB.')
     parser.add_argument('-s', '--stats-types', nargs='+', choices=STATS, default=[],
                         help='The type of statistics to compute. By default, everything will be computed.')
     parser.add_argument('-a', '--all', action='store_true',
                         help='Drop all previous data for given `stats-types` and fulfill the DB '
-                             'with all values till now. Timestamp parameter will be ignored.')
+                             'with all values till now. Can\'t be used with `--timestamp`')
     args = parser.parse_args()
+    if args.all and args.timestamp:
+        raise ValueError('`timestamp` parameter can\'t be combined with `all` option')
 
     dotenv.load_dotenv()
     ANALYTICS_DATABASE_URL = os.getenv('ANALYTICS_DATABASE_URL')
@@ -43,22 +98,10 @@ if __name__ == '__main__':
     with psycopg2.connect(ANALYTICS_DATABASE_URL) as analytics_connection, \
             psycopg2.connect(INDEXER_DATABASE_URL) as indexer_connection:
         # TODO check if the DB is ready to collect data for this date
-        # TODO make dependencies for stats (daily_new_unique_contracts_count depends on deployed_contracts)
-        for statistics_type in args.stats_types or STATS:
-            try:
-                aligned_field = f'{statistics_type}...'.ljust(35)
-                print(f'Computing {aligned_field}', end=' ')
-                start_time = time.time()
-
-                statistics_cls = STATS[statistics_type]
-                statistics = statistics_cls(analytics_connection, indexer_connection)
-                statistics.create_table(drop_previous_table=args.all)
-                result = statistics.collect_statistics(args.timestamp, args.all)
-                statistics.store_statistics(result)
-
-                print(f'Done in {round(time.time() - start_time, 1)} seconds. Result: {result}')
-            except Exception as e:
-                # Let's at least try to collect other stats
-                analytics_connection.rollback()
-                indexer_connection.rollback()
-                print(e)
+        for stats_type in args.stats_types or STATS:
+            while True:
+                try:
+                    compute_statistics(analytics_connection, indexer_connection, stats_type, args.timestamp, args.all)
+                    break
+                except Exception as e:
+                    print(e)
