@@ -1,10 +1,10 @@
 import typing
 
 from . import DAY_LEN_SECONDS, daily_start_of_range
-from ..sql_statistics import SqlStatistics
+from ..periodic_statistics import PeriodicStatistics
 
 
-class DailyNewContractsCount(SqlStatistics):
+class DailyNewContractsCount(PeriodicStatistics):
     @property
     def sql_create_table(self):
         # For September 2021, we have 10^6 accounts on the Mainnet.
@@ -15,6 +15,12 @@ class DailyNewContractsCount(SqlStatistics):
                 collected_for_day   DATE PRIMARY KEY,
                 new_contracts_count INTEGER NOT NULL
             )
+        '''
+
+    @property
+    def sql_drop_table(self):
+        return '''
+            DROP TABLE IF EXISTS daily_new_contracts_count
         '''
 
     @property
@@ -29,12 +35,24 @@ class DailyNewContractsCount(SqlStatistics):
         '''
 
     @property
+    def sql_select_all(self):
+        return '''
+            SELECT
+                DATE_TRUNC('day', TO_TIMESTAMP(DIV(receipts.included_in_block_timestamp, 1000*1000*1000))) AS date,
+                COUNT(DISTINCT receipts.receiver_account_id) AS new_contracts_count_by_date
+            FROM action_receipt_actions
+            JOIN receipts ON receipts.receipt_id = action_receipt_actions.receipt_id
+            WHERE action_receipt_actions.action_kind = 'DEPLOY_CONTRACT'
+                AND receipts.included_in_block_timestamp < (CAST(EXTRACT(EPOCH FROM DATE_TRUNC('day', NOW())) AS bigint) * 1000 * 1000 * 1000)
+            GROUP BY date
+            ORDER BY date
+        '''
+
+    @property
     def sql_insert(self):
         return '''
-            INSERT INTO daily_new_contracts_count VALUES (
-                %(time)s,
-                %(result)s
-            )
+            INSERT INTO daily_new_contracts_count VALUES %s
+            ON CONFLICT DO NOTHING
         '''
 
     @property

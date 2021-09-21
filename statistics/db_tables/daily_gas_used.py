@@ -1,10 +1,10 @@
 import typing
 
 from . import DAY_LEN_SECONDS, daily_start_of_range
-from ..sql_statistics import SqlStatistics
+from ..periodic_statistics import PeriodicStatistics
 
 
-class DailyGasUsed(SqlStatistics):
+class DailyGasUsed(PeriodicStatistics):
     @property
     def sql_create_table(self):
         # In Indexer, we store `chunks.gas_used` in numeric(20,0).
@@ -20,6 +20,12 @@ class DailyGasUsed(SqlStatistics):
         '''
 
     @property
+    def sql_drop_table(self):
+        return '''
+            DROP TABLE IF EXISTS daily_gas_used
+        '''
+
+    @property
     def sql_select(self):
         return '''
             SELECT SUM(chunks.gas_used)
@@ -30,12 +36,23 @@ class DailyGasUsed(SqlStatistics):
         '''
 
     @property
+    def sql_select_all(self):
+        return '''
+            SELECT
+                DATE_TRUNC('day', TO_TIMESTAMP(DIV(blocks.block_timestamp, 1000 * 1000 * 1000))) AS date,
+                SUM(chunks.gas_used) AS gas_used_by_date
+            FROM blocks
+            JOIN chunks ON chunks.included_in_block_hash = blocks.block_hash
+            WHERE blocks.block_timestamp < (CAST(EXTRACT(EPOCH FROM DATE_TRUNC('day', NOW())) AS bigint) * 1000 * 1000 * 1000)
+            GROUP BY date
+            ORDER BY date
+        '''
+
+    @property
     def sql_insert(self):
         return '''
-            INSERT INTO daily_gas_used VALUES (
-                %(time)s,
-                %(result)s
-            )
+            INSERT INTO daily_gas_used VALUES %s
+            ON CONFLICT DO NOTHING
         '''
 
     @property

@@ -6,7 +6,7 @@ import time
 
 from statistics import DailyActiveAccountsCount, DailyActiveContractsCount, DailyDeletedAccountsCount, \
     DailyDepositAmount, DailyGasUsed, DailyNewAccountsCount, DailyNewContractsCount, DailyNewUniqueContractsCount, \
-    DailyTransactionsCount, WeeklyActiveAccountsCount
+    DailyTransactionsCount, DeployedContracts, WeeklyActiveAccountsCount
 
 STATS = {
     'daily_active_accounts_count': DailyActiveAccountsCount,
@@ -18,6 +18,7 @@ STATS = {
     'daily_new_contracts_count': DailyNewContractsCount,
     'daily_new_unique_contracts_count': DailyNewUniqueContractsCount,
     'daily_transactions_count': DailyTransactionsCount,
+    'deployed_contracts': DeployedContracts,
     'weekly_active_accounts_count': WeeklyActiveAccountsCount,
 }
 
@@ -30,6 +31,9 @@ if __name__ == '__main__':
                              '(yesterday, previous week starting Monday, previous calendar month).')
     parser.add_argument('-s', '--stats-types', nargs='+', choices=STATS, default=[],
                         help='The type of statistics to compute. By default, everything will be computed.')
+    parser.add_argument('-a', '--all', action='store_true',
+                        help='Drop all previous data for given `stats-types` and fulfill the DB '
+                             'with all values till now. Timestamp parameter will be ignored.')
     args = parser.parse_args()
 
     dotenv.load_dotenv()
@@ -38,6 +42,8 @@ if __name__ == '__main__':
 
     with psycopg2.connect(ANALYTICS_DATABASE_URL) as analytics_connection, \
             psycopg2.connect(INDEXER_DATABASE_URL) as indexer_connection:
+        # TODO check if the DB is ready to collect data for this date
+        # TODO make dependencies for stats (daily_new_unique_contracts_count depends on deployed_contracts)
         for statistics_type in args.stats_types or STATS:
             try:
                 aligned_field = f'{statistics_type}...'.ljust(35)
@@ -46,8 +52,8 @@ if __name__ == '__main__':
 
                 statistics_cls = STATS[statistics_type]
                 statistics = statistics_cls(analytics_connection, indexer_connection)
-                statistics.create_tables()
-                result = statistics.collect_statistics(args.timestamp)
+                statistics.create_table(drop_previous_table=args.all)
+                result = statistics.collect_statistics(args.timestamp, args.all)
                 statistics.store_statistics(result)
 
                 print(f'Done in {round(time.time() - start_time, 1)} seconds. Result: {result}')
