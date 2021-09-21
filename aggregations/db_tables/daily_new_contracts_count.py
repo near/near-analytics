@@ -1,10 +1,10 @@
 import typing
 
 from . import DAY_LEN_SECONDS, daily_start_of_range
-from ..periodic_statistics import PeriodicStatistics
+from ..periodic_aggregations import PeriodicAggregations
 
 
-class DailyNewContractsCount(PeriodicStatistics):
+class DailyNewContractsCount(PeriodicAggregations):
     @property
     def sql_create_table(self):
         # For September 2021, we have 10^6 accounts on the Mainnet.
@@ -45,7 +45,6 @@ class DailyNewContractsCount(PeriodicStatistics):
             WHERE action_receipt_actions.action_kind = 'DEPLOY_CONTRACT'
                 AND receipts.included_in_block_timestamp < (CAST(EXTRACT(EPOCH FROM DATE_TRUNC('day', NOW())) AS bigint) * 1000 * 1000 * 1000)
             GROUP BY date
-            ORDER BY date
         '''
 
     @property

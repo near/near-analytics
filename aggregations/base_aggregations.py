@@ -4,8 +4,9 @@ import psycopg2
 import typing
 
 
+# Base class with all public methods needed to interact with each aggregation
 @dataclasses.dataclass
-class BaseStatistics(abc.ABC):
+class BaseAggregations(abc.ABC):
     analytics_connection: psycopg2.extensions.connection
     indexer_connection: psycopg2.extensions.connection
 
@@ -22,17 +23,17 @@ class BaseStatistics(abc.ABC):
     def drop_table(self):
         pass
 
-    # Collects the statistics for the requested_timestamp.
-    # If requested_timestamp == None, all historical statistics will be collected.
-    # If it's not possible to compute statistics for given requested_timestamp,
+    # Collects the aggregations for the requested_timestamp.
+    # If requested_timestamp == None, all historical aggregations will be collected.
+    # If it's not possible to compute aggregations for given requested_timestamp,
     # (for example, we ask about daily stats for today: the day is not ended),
     # empty list will be returned.
     # The method should return the list of values,
     # each of the values should be possible to add to the table (from `create_table` method) without any changes
     @abc.abstractmethod
-    def collect_statistics(self, requested_timestamp: typing.Optional[int]) -> list:
+    def collect(self, requested_timestamp: typing.Optional[int]) -> list:
         pass
 
     @abc.abstractmethod
-    def store_statistics(self, parameters: list):
+    def store(self, parameters: list):
         pass

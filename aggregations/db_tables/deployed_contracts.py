@@ -1,16 +1,16 @@
-from ..aggregations import Aggregations
+from ..sql_aggregations import SqlAggregations
 
 
-class DeployedContracts(Aggregations):
+class DeployedContracts(SqlAggregations):
     @property
     def sql_create_table(self):
         return '''
             CREATE TABLE IF NOT EXISTS deployed_contracts
             (
-                code_sha256                text PRIMARY KEY,
-                contract_id                text           NOT NULL,
-                created_by_receipt_id      text           NOT NULL,
-                created_by_block_timestamp numeric(20, 0) NOT NULL
+                code_sha256                      text PRIMARY KEY,
+                contract_id                      text           NOT NULL,
+                first_created_by_receipt_id      text           NOT NULL,
+                first_created_by_block_timestamp numeric(20, 0) NOT NULL
             )
         '''
 
@@ -26,8 +26,8 @@ class DeployedContracts(Aggregations):
             SELECT
                 action_receipt_actions.args->>'code_sha256' as code_sha256,
                 receipts.receiver_account_id as contract_id,
-                receipts.receipt_id as created_by_receipt_id,
-                receipts.included_in_block_timestamp as created_by_block_timestamp
+                receipts.receipt_id as first_created_by_receipt_id,
+                receipts.included_in_block_timestamp as first_created_by_block_timestamp
             FROM action_receipt_actions
             JOIN receipts ON receipts.receipt_id = action_receipt_actions.receipt_id
             WHERE receipts.included_in_block_timestamp >= %(timestamp)s
@@ -41,8 +41,8 @@ class DeployedContracts(Aggregations):
             SELECT
                 action_receipt_actions.args->>'code_sha256' as code_sha256,
                 receipts.receiver_account_id as contract_id,
-                receipts.receipt_id as created_by_receipt_id,
-                receipts.included_in_block_timestamp as created_by_block_timestamp
+                receipts.receipt_id as first_created_by_receipt_id,
+                receipts.included_in_block_timestamp as first_created_by_block_timestamp
             FROM action_receipt_actions
             JOIN receipts ON receipts.receipt_id = action_receipt_actions.receipt_id
             AND action_kind = 'DEPLOY_CONTRACT'
