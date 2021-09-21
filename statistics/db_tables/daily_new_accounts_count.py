@@ -1,10 +1,10 @@
 import typing
 
 from . import DAY_LEN_SECONDS, daily_start_of_range
-from ..sql_statistics import SqlStatistics
+from ..periodic_statistics import PeriodicStatistics
 
 
-class DailyNewAccountsCount(SqlStatistics):
+class DailyNewAccountsCount(PeriodicStatistics):
     @property
     def sql_create_table(self):
         # Suppose we have at most 10^4 (10K) new accounts per second.
@@ -19,6 +19,12 @@ class DailyNewAccountsCount(SqlStatistics):
         '''
 
     @property
+    def sql_drop_table(self):
+        return '''
+            DROP TABLE IF EXISTS daily_new_accounts_count
+        '''
+
+    @property
     def sql_select(self):
         return '''
             SELECT COUNT(created_by_receipt_id)
@@ -29,12 +35,23 @@ class DailyNewAccountsCount(SqlStatistics):
         '''
 
     @property
+    def sql_select_all(self):
+        return '''
+            SELECT
+                DATE_TRUNC('day', TO_TIMESTAMP(receipts.included_in_block_timestamp / 1000 * 1000 * 1000)) AS date,
+                COUNT(created_by_receipt_id) AS new_accounts_count_by_date
+            FROM accounts
+            JOIN receipts ON receipts.receipt_id = accounts.created_by_receipt_id
+            WHERE receipts.included_in_block_timestamp < (CAST(EXTRACT(EPOCH FROM DATE_TRUNC('day', NOW())) AS bigint) * 1000 * 1000 * 1000)
+            GROUP BY date
+            ORDER BY date
+        '''
+
+    @property
     def sql_insert(self):
         return '''
-            INSERT INTO daily_new_accounts_count VALUES (
-                %(time)s,
-                %(result)s
-            )
+            INSERT INTO daily_new_accounts_count VALUES %s
+            ON CONFLICT DO NOTHING
         '''
 
     @property

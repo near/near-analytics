@@ -10,11 +10,15 @@ class Statistics(abc.ABC):
     indexer_connection: psycopg2.extensions.connection
 
     @abc.abstractmethod
-    def create_tables(self):
+    def create_table(self, drop_previous_table: bool):
         pass
 
     @abc.abstractmethod
-    def collect_statistics(self, requested_statistics_timestamp: typing.Optional[int]) -> dict:
+    def drop_table(self):
+        pass
+
+    @abc.abstractmethod
+    def collect_statistics(self, requested_timestamp: typing.Optional[int], collect_all: bool) -> dict:
         pass
 
     @abc.abstractmethod
