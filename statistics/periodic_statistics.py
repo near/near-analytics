@@ -27,6 +27,7 @@ class PeriodicStatistics(Aggregations):
     @staticmethod
     def prepare_data(parameters, **kwargs) -> list:
         # We usually have one-value returns, and we need to merge it with corresponding date
+        # TODO fix the scenario if there is really only one value for the period
         if len(parameters) == 1:
             time = datetime.datetime.utcfromtimestamp(kwargs['start_of_range'])
             parameters = [(time, parameters[0][0] or 0)]
