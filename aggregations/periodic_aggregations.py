@@ -1,13 +1,12 @@
 import abc
 import datetime
-import time
 import typing
 
-from .aggregations import Aggregations
+from .sql_aggregations import SqlAggregations
 from .db_tables import time_range_json
 
 
-class PeriodicStatistics(Aggregations):
+class PeriodicAggregations(SqlAggregations):
     @abc.abstractmethod
     def start_of_range(self, requested_statistics_timestamp: typing.Optional[int]) -> int:
         pass
@@ -18,9 +17,9 @@ class PeriodicStatistics(Aggregations):
         pass
 
     # requested_timestamp will be rounded to the start of the day, week (Monday), month, etc.
-    def collect_statistics(self, requested_timestamp: typing.Optional[int]) -> list:
+    def collect(self, requested_timestamp: typing.Optional[int]) -> list:
         from_timestamp = self.start_of_range(requested_timestamp)
-        if from_timestamp + self.duration_seconds > int(time.time()):
+        if not self.is_indexer_ready(from_timestamp + self.duration_seconds):
             return []
         with self.indexer_connection.cursor() as indexer_cursor:
             select = self.sql_select if requested_timestamp else self.sql_select_all
@@ -36,3 +35,15 @@ class PeriodicStatistics(Aggregations):
             computed_for = datetime.datetime.utcfromtimestamp(kwargs['start_of_range'])
             parameters = [(computed_for, parameters[0][0] or 0)]
         return [(computed_for.strftime('%Y-%m-%d'), data) for (computed_for, data) in parameters]
+
+    def is_indexer_ready(self, needed_timestamp):
+        select_latest_timestamp = '''
+            SELECT DIV(block_timestamp, 1000 * 1000 * 1000)
+            FROM blocks
+            ORDER BY block_timestamp DESC
+            LIMIT 1
+        '''
+        with self.indexer_connection.cursor() as indexer_cursor:
+            indexer_cursor.execute(select_latest_timestamp)
+            latest_timestamp = indexer_cursor.fetchone()
+            return latest_timestamp >= needed_timestamp

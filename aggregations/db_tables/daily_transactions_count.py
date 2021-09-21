@@ -1,10 +1,10 @@
 import typing
 
 from . import DAY_LEN_SECONDS, daily_start_of_range
-from ..periodic_statistics import PeriodicStatistics
+from ..periodic_aggregations import PeriodicAggregations
 
 
-class DailyTransactionsCount(PeriodicStatistics):
+class DailyTransactionsCount(PeriodicAggregations):
     @property
     def sql_create_table(self):
         # Suppose we have at most 10^5 (100K) transactions per second.
@@ -41,7 +41,6 @@ class DailyTransactionsCount(PeriodicStatistics):
             FROM transactions
             WHERE transactions.block_timestamp < (CAST(EXTRACT(EPOCH FROM DATE_TRUNC('day', NOW())) AS bigint) * 1000 * 1000 * 1000)
             GROUP BY date
-            ORDER BY date
         '''
 
     @property

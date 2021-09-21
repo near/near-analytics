@@ -2,10 +2,10 @@ import datetime
 import typing
 
 from . import DAY_LEN_SECONDS, daily_start_of_range
-from ..periodic_statistics import PeriodicStatistics
+from ..periodic_aggregations import PeriodicAggregations
 
 
-class DailyReceiptsPerContractCount(PeriodicStatistics):
+class DailyReceiptsPerContractCount(PeriodicAggregations):
     @property
     def sql_create_table(self):
         # Suppose we have at most 10^5 (100K) transactions per second.
@@ -32,17 +32,15 @@ class DailyReceiptsPerContractCount(PeriodicStatistics):
 
     @property
     def sql_select(self):
-        # TODO maybe we want to compute only successful receipts?
         return '''
             SELECT
-                receiver_account_id,
-                COUNT(receipts.receipt_id) AS receipts_count
+                action_receipt_actions.receipt_receiver_account_id,
+                COUNT(action_receipt_actions.receipt_id) AS receipts_count
             FROM action_receipt_actions
-            JOIN receipts ON receipts.receipt_id = action_receipt_actions.receipt_id
             WHERE action_receipt_actions.action_kind = 'FUNCTION_CALL'
-                AND receipts.included_in_block_timestamp >= %(from_timestamp)s
-                AND receipts.included_in_block_timestamp < %(to_timestamp)s
-            GROUP BY receiver_account_id
+                AND action_receipt_actions.receipt_included_in_block_timestamp >= %(from_timestamp)s
+                AND action_receipt_actions.receipt_included_in_block_timestamp < %(to_timestamp)s
+            GROUP BY action_receipt_actions.receipt_receiver_account_id
         '''
 
     @property

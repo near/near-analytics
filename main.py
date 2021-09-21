@@ -4,14 +4,15 @@ import os
 import psycopg2
 import time
 
-from statistics import DailyActiveAccountsCount, DailyActiveContractsCount, DailyDeletedAccountsCount, \
+from aggregations import DailyActiveAccountsCount, DailyActiveContractsCount, DailyDeletedAccountsCount, \
     DailyDepositAmount, DailyGasUsed, DailyNewAccountsCount, DailyNewContractsCount, DailyNewUniqueContractsCount, \
     DailyReceiptsPerContractCount, DailyTransactionsCount, DailyTransactionsPerAccountCount, DeployedContracts, \
     WeeklyActiveAccountsCount
-from statistics.db_tables import GENESIS_SECONDS, DAY_LEN_SECONDS
+from aggregations.db_tables import GENESIS_SECONDS, DAY_LEN_SECONDS
 
 from datetime import datetime
 
+# TODO think how to get rid of these lists. It would be better if we don't need to populate them
 STATS = {
     'daily_active_accounts_count': DailyActiveAccountsCount,
     'daily_active_contracts_count': DailyActiveContractsCount,
@@ -28,8 +29,8 @@ STATS = {
     'weekly_active_accounts_count': WeeklyActiveAccountsCount,
 }
 
-# For these statistics, it's unable to compute all historical data by one SELECT query.
-# We have to compute these statistics by pieces
+# For these aggregations, it's unable to compute all historical data by one SELECT query.
+# We have to compute these aggregations by pieces
 UNABLE_TO_COMPUTE_ALL_IN_ONCE = (
     'daily_new_unique_contracts_count',
     'daily_receipts_per_contract_count',
@@ -39,7 +40,8 @@ UNABLE_TO_COMPUTE_ALL_IN_ONCE = (
 
 def compute(analytics_connection, indexer_connection, statistics_type, statistics, timestamp, collect_all):
     try:
-        printable_period = 'all period' if not timestamp else f'{datetime.utcfromtimestamp(timestamp).date()}'
+        timestamp = None if collect_all else (timestamp or int(time.time() - DAY_LEN_SECONDS))
+        printable_period = 'all period' if collect_all else f'{datetime.utcfromtimestamp(timestamp).date()}'
         print(f'Started computing {statistics_type} for {printable_period}')
         start_time = time.time()
 
@@ -47,9 +49,8 @@ def compute(analytics_connection, indexer_connection, statistics_type, statistic
             statistics.drop_table()
         statistics.create_table()
 
-        timestamp = None if collect_all else (timestamp or int(time.time() - DAY_LEN_SECONDS))
-        result = statistics.collect_statistics(timestamp)
-        statistics.store_statistics(result)
+        result = statistics.collect(timestamp)
+        statistics.store(result)
 
         print(f'Finished computing {statistics_type} in {round(time.time() - start_time, 1)} seconds')
     except Exception as e:
@@ -66,6 +67,9 @@ def compute_statistics(analytics_connection, indexer_connection, statistics_type
         compute_statistics(analytics_connection, indexer_connection, cls, timestamp, collect_all)
 
     if collect_all and statistics_type in UNABLE_TO_COMPUTE_ALL_IN_ONCE:
+        # It's not possible to hide this logic inside `collect_statistics` because the resulting list
+        # will be potentially too large to store it in RAM
+        # For example, we have > 1.6M lines for daily_transactions_per_account_count
         statistics.drop_table()
         current_day = GENESIS_SECONDS
         while current_day < int(time.time()):
@@ -76,14 +80,14 @@ def compute_statistics(analytics_connection, indexer_connection, statistics_type
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Compute statistics for given Indexer DB')
+    parser = argparse.ArgumentParser(description='Compute aggregations for given Indexer DB')
     parser.add_argument('-t', '--timestamp', type=int,
-                        help='The timestamp in seconds precision, indicates the period for computing the statistics. '
+                        help='The timestamp in seconds precision, indicates the period for computing the aggregations. '
                              'The rounding will be performed. By default, takes yesterday. '
-                             'If it\'s not possible to compute the statistics for given period, '
+                             'If it\'s not possible to compute the aggregations for given period, '
                              'nothing will be added to the DB.')
     parser.add_argument('-s', '--stats-types', nargs='+', choices=STATS, default=[],
-                        help='The type of statistics to compute. By default, everything will be computed.')
+                        help='The type of aggregations to compute. By default, everything will be computed.')
     parser.add_argument('-a', '--all', action='store_true',
                         help='Drop all previous data for given `stats-types` and fulfill the DB '
                              'with all values till now. Can\'t be used with `--timestamp`')
@@ -97,11 +101,8 @@ if __name__ == '__main__':
 
     with psycopg2.connect(ANALYTICS_DATABASE_URL) as analytics_connection, \
             psycopg2.connect(INDEXER_DATABASE_URL) as indexer_connection:
-        # TODO check if the DB is ready to collect data for this date
         for stats_type in args.stats_types or STATS:
-            while True:
-                try:
-                    compute_statistics(analytics_connection, indexer_connection, stats_type, args.timestamp, args.all)
-                    break
-                except Exception as e:
-                    print(e)
+            try:
+                compute_statistics(analytics_connection, indexer_connection, stats_type, args.timestamp, args.all)
+            except Exception as e:
+                print(e)

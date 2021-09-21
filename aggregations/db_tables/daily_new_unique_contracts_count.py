@@ -2,11 +2,11 @@ import datetime
 import typing
 
 from . import DAY_LEN_SECONDS, daily_start_of_range, time_json
-from ..periodic_statistics import PeriodicStatistics
+from ..periodic_aggregations import PeriodicAggregations
 
 
-# This metric depends both on Indexer data, and on `deployed_contracts` table in Analytics DB.
-class DailyNewUniqueContractsCount(PeriodicStatistics):
+# This metric depends both on Indexer data, and on `deployed_contracts` table in Analytics DB
+class DailyNewUniqueContractsCount(PeriodicAggregations):
     def dependencies(self) -> list:
         return ['deployed_contracts']
 
@@ -52,18 +52,18 @@ class DailyNewUniqueContractsCount(PeriodicStatistics):
             ON CONFLICT DO NOTHING
         '''
 
-    def collect_statistics(self, requested_timestamp: typing.Optional[int]) -> list:
+    def collect(self, requested_timestamp: typing.Optional[int]) -> list:
         if not requested_timestamp:
             raise NotImplementedError
 
         # Get new contracts from Indexer DB. We use `distinct` in SQL,
         # But we still have no guarantees because the contract could be added a week ago
-        new_contracts = super().collect_statistics(requested_timestamp)
+        new_contracts = super().collect(requested_timestamp)
 
         all_contract_hashes_select = '''
             SELECT code_sha256
             FROM deployed_contracts
-            WHERE created_by_block_timestamp < %(timestamp)s
+            WHERE first_created_by_block_timestamp < %(timestamp)s
         '''
 
         from_timestamp = self.start_of_range(requested_timestamp)

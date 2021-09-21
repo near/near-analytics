@@ -1,10 +1,10 @@
 import typing
 
 from . import DAY_LEN_SECONDS, daily_start_of_range
-from ..periodic_statistics import PeriodicStatistics
+from ..periodic_aggregations import PeriodicAggregations
 
 
-class DailyActiveAccountsCount(PeriodicStatistics):
+class DailyActiveAccountsCount(PeriodicAggregations):
     @property
     def sql_create_table(self):
         # For September 2021, we have 10^6 accounts on the Mainnet.
@@ -28,10 +28,8 @@ class DailyActiveAccountsCount(PeriodicStatistics):
         return '''
             SELECT COUNT(DISTINCT transactions.signer_account_id)
             FROM transactions
-            JOIN execution_outcomes ON execution_outcomes.receipt_id = transactions.converted_into_receipt_id
             WHERE transactions.block_timestamp >= %(from_timestamp)s
                 AND transactions.block_timestamp < %(to_timestamp)s
-                AND execution_outcomes.status IN ('SUCCESS_VALUE', 'SUCCESS_RECEIPT_ID')
         '''
 
     @property
@@ -41,11 +39,8 @@ class DailyActiveAccountsCount(PeriodicStatistics):
                 DATE_TRUNC('day', TO_TIMESTAMP(DIV(transactions.block_timestamp, 1000 * 1000 * 1000))) AS date,
                 COUNT(DISTINCT transactions.signer_account_id) AS active_accounts_count_by_date
             FROM transactions
-            JOIN execution_outcomes ON execution_outcomes.receipt_id = transactions.converted_into_receipt_id
-            WHERE execution_outcomes.status IN ('SUCCESS_VALUE', 'SUCCESS_RECEIPT_ID')
-                AND transactions.block_timestamp < (CAST(EXTRACT(EPOCH FROM DATE_TRUNC('day', NOW())) AS bigint) * 1000 * 1000 * 1000)
+            WHERE transactions.block_timestamp < (CAST(EXTRACT(EPOCH FROM DATE_TRUNC('day', NOW())) AS bigint) * 1000 * 1000 * 1000)
             GROUP BY date
-            ORDER BY date
         '''
 
     @property

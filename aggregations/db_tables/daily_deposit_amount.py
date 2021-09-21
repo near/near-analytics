@@ -1,10 +1,10 @@
 import typing
 
 from . import DAY_LEN_SECONDS, daily_start_of_range
-from ..periodic_statistics import PeriodicStatistics
+from ..periodic_aggregations import PeriodicAggregations
 
 
-class DailyDepositAmount(PeriodicStatistics):
+class DailyDepositAmount(PeriodicAggregations):
     @property
     def sql_create_table(self):
         # For September 2021, the biggest value here is 10^34.
@@ -55,13 +55,12 @@ class DailyDepositAmount(PeriodicStatistics):
                 AND execution_outcomes.status IN ('SUCCESS_VALUE', 'SUCCESS_RECEIPT_ID')
                 AND execution_outcomes.executed_in_block_timestamp < (CAST(EXTRACT(EPOCH FROM DATE_TRUNC('day', NOW())) AS bigint) * 1000 * 1000 * 1000)
             GROUP BY date
-            ORDER BY date
         '''
 
     @property
     def sql_insert(self):
         return '''
-            INSERT INTO daily_deposit_amount VALUES VALUES %s
+            INSERT INTO daily_deposit_amount VALUES %s
             ON CONFLICT DO NOTHING
         '''
 

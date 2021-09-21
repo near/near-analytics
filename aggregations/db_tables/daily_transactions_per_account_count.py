@@ -2,10 +2,10 @@ import datetime
 import typing
 
 from . import DAY_LEN_SECONDS, daily_start_of_range
-from ..periodic_statistics import PeriodicStatistics
+from ..periodic_aggregations import PeriodicAggregations
 
 
-class DailyTransactionsPerAccountCount(PeriodicStatistics):
+class DailyTransactionsPerAccountCount(PeriodicAggregations):
     @property
     def sql_create_table(self):
         # Suppose we have at most 10^5 (100K) transactions per second.
@@ -32,7 +32,6 @@ class DailyTransactionsPerAccountCount(PeriodicStatistics):
 
     @property
     def sql_select(self):
-        # TODO maybe we want to compute only successful transactions?
         return '''
             SELECT
                 signer_account_id,

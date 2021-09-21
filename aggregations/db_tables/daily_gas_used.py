@@ -1,10 +1,10 @@
 import typing
 
 from . import DAY_LEN_SECONDS, daily_start_of_range
-from ..periodic_statistics import PeriodicStatistics
+from ..periodic_aggregations import PeriodicAggregations
 
 
-class DailyGasUsed(PeriodicStatistics):
+class DailyGasUsed(PeriodicAggregations):
     @property
     def sql_create_table(self):
         # In Indexer, we store `chunks.gas_used` in numeric(20,0).
@@ -45,7 +45,6 @@ class DailyGasUsed(PeriodicStatistics):
             JOIN chunks ON chunks.included_in_block_hash = blocks.block_hash
             WHERE blocks.block_timestamp < (CAST(EXTRACT(EPOCH FROM DATE_TRUNC('day', NOW())) AS bigint) * 1000 * 1000 * 1000)
             GROUP BY date
-            ORDER BY date
         '''
 
     @property
