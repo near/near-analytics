@@ -45,5 +45,5 @@ class PeriodicAggregations(SqlAggregations):
         '''
         with self.indexer_connection.cursor() as indexer_cursor:
             indexer_cursor.execute(select_latest_timestamp)
-            latest_timestamp = indexer_cursor.fetchone()
+            latest_timestamp = indexer_cursor.fetchone()[0]
             return latest_timestamp >= needed_timestamp

@@ -4,6 +4,7 @@ import psycopg2
 import typing
 
 
+# TODO create "is it supports collecting all at once" method
 # Base class with all public methods needed to interact with each aggregation
 @dataclasses.dataclass
 class BaseAggregations(abc.ABC):

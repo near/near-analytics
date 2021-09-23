@@ -99,10 +99,18 @@ if __name__ == '__main__':
     ANALYTICS_DATABASE_URL = os.getenv('ANALYTICS_DATABASE_URL')
     INDEXER_DATABASE_URL = os.getenv('INDEXER_DATABASE_URL')
 
+    first_found_error = None
     with psycopg2.connect(ANALYTICS_DATABASE_URL) as analytics_connection, \
             psycopg2.connect(INDEXER_DATABASE_URL) as indexer_connection:
         for stats_type in args.stats_types or STATS:
             try:
                 compute_statistics(analytics_connection, indexer_connection, stats_type, args.timestamp, args.all)
             except Exception as e:
+                if not first_found_error:
+                    first_found_error = e
                 print(e)
+
+    # It's important to have non-zero exit code in case of any errors,
+    # It helps AWX to identify and report the problem
+    if first_found_error:
+        raise first_found_error

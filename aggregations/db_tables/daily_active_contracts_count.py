@@ -26,7 +26,7 @@ class DailyActiveContractsCount(PeriodicAggregations):
     @property
     def sql_select(self):
         return '''
-            SELECT COUNT(DISTINCT action_receipt_actions.receipt_predecessor_account_id)
+            SELECT COUNT(DISTINCT action_receipt_actions.receipt_receiver_account_id)
             FROM action_receipt_actions
             WHERE action_receipt_actions.receipt_included_in_block_timestamp >= %(from_timestamp)s
                 AND action_receipt_actions.receipt_included_in_block_timestamp < %(to_timestamp)s
@@ -38,7 +38,7 @@ class DailyActiveContractsCount(PeriodicAggregations):
         return '''
             SELECT
                 DATE_TRUNC('day', TO_TIMESTAMP(DIV(action_receipt_actions.receipt_included_in_block_timestamp, 1000 * 1000 * 1000))) AS date,
-                COUNT(DISTINCT action_receipt_actions.receipt_predecessor_account_id) AS active_contracts_count_by_date
+                COUNT(DISTINCT action_receipt_actions.receipt_receiver_account_id) AS active_contracts_count_by_date
             FROM action_receipt_actions
             WHERE action_receipt_actions.action_kind = 'FUNCTION_CALL'
                 AND action_receipt_actions.receipt_included_in_block_timestamp < (CAST(EXTRACT(EPOCH FROM DATE_TRUNC('day', NOW())) AS bigint) * 1000 * 1000 * 1000)

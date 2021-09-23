@@ -5,6 +5,7 @@ from datetime import date, datetime, timedelta
 
 DAY_LEN_SECONDS = 86400
 WEEK_LEN_SECONDS = DAY_LEN_SECONDS * 7
+# TODO we need to get rid of knowing "start of mainnet". We work not only for mainnet
 GENESIS_SECONDS = 1595350551
 
 
