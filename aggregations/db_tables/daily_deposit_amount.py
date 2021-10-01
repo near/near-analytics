@@ -31,10 +31,9 @@ class DailyDepositAmount(PeriodicAggregations):
             SELECT SUM((action_receipt_actions.args->>'deposit')::numeric)
             FROM action_receipt_actions
             JOIN execution_outcomes ON execution_outcomes.receipt_id = action_receipt_actions.receipt_id
-            JOIN receipts ON receipts.receipt_id = action_receipt_actions.receipt_id
             WHERE execution_outcomes.executed_in_block_timestamp >= %(from_timestamp)s
                 AND execution_outcomes.executed_in_block_timestamp < %(to_timestamp)s
-                AND receipts.predecessor_account_id != 'system'
+                AND action_receipt_actions.receipt_predecessor_account_id != 'system'
                 AND action_receipt_actions.action_kind IN ('FUNCTION_CALL', 'TRANSFER')
                 AND (action_receipt_actions.args->>'deposit')::numeric > 0
                 AND execution_outcomes.status IN ('SUCCESS_VALUE', 'SUCCESS_RECEIPT_ID')
@@ -48,8 +47,7 @@ class DailyDepositAmount(PeriodicAggregations):
                 SUM((action_receipt_actions.args->>'deposit')::numeric) AS total_deposit_amount
             FROM action_receipt_actions
             JOIN execution_outcomes ON execution_outcomes.receipt_id = action_receipt_actions.receipt_id
-            JOIN receipts ON receipts.receipt_id = action_receipt_actions.receipt_id
-            WHERE receipts.predecessor_account_id != 'system'
+            WHERE action_receipt_actions.receipt_predecessor_account_id != 'system'
                 AND action_receipt_actions.action_kind IN ('FUNCTION_CALL', 'TRANSFER')
                 AND (action_receipt_actions.args->>'deposit')::numeric > 0
                 AND execution_outcomes.status IN ('SUCCESS_VALUE', 'SUCCESS_RECEIPT_ID')
