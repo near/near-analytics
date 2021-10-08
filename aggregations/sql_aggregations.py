@@ -1,7 +1,6 @@
 import abc
 import psycopg2
 import psycopg2.extras
-import typing
 
 from .base_aggregations import BaseAggregations
 from .db_tables import time_json, daily_start_of_range
@@ -28,11 +27,6 @@ class SqlAggregations(BaseAggregations):
 
     @property
     @abc.abstractmethod
-    def sql_select_all(self):
-        pass
-
-    @property
-    @abc.abstractmethod
     def sql_insert(self):
         pass
 
@@ -52,13 +46,12 @@ class SqlAggregations(BaseAggregations):
             except psycopg2.errors.UndefinedTable:
                 self.analytics_connection.rollback()
 
-    def collect(self, requested_timestamp: typing.Optional[int]) -> list:
+    def collect(self, requested_timestamp: int) -> list:
         with self.indexer_connection.cursor() as indexer_cursor:
-            select = self.sql_select if requested_timestamp else self.sql_select_all
             # We suppose here that we successfully collect everything on a daily basis,
             # and we need to collect the data only for the last day. It's a dangerous guess.
             # TODO add the check if all previous data was successfully collected
-            indexer_cursor.execute(select, time_json(daily_start_of_range(requested_timestamp)))
+            indexer_cursor.execute(self.sql_select, time_json(daily_start_of_range(requested_timestamp)))
             result = indexer_cursor.fetchall()
             return self.prepare_data(result)
 

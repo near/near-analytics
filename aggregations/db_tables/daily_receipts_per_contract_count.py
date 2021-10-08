@@ -1,5 +1,4 @@
 import datetime
-import typing
 
 from . import DAY_LEN_SECONDS, daily_start_of_range
 from ..periodic_aggregations import PeriodicAggregations
@@ -44,13 +43,6 @@ class DailyReceiptsPerContractCount(PeriodicAggregations):
         '''
 
     @property
-    def sql_select_all(self):
-        # It's not a good idea to calculate it through one select because there will be too much values,
-        # I am waiting for 8 millions of rows. It could not fit into RAM on most machines, and INSERT will fail.
-        # We have to fill it by for-cycle on Python level
-        raise NotImplementedError
-
-    @property
     def sql_insert(self):
         return '''
             INSERT INTO daily_receipts_per_contract_count VALUES %s
@@ -61,8 +53,8 @@ class DailyReceiptsPerContractCount(PeriodicAggregations):
     def duration_seconds(self):
         return DAY_LEN_SECONDS
 
-    def start_of_range(self, requested_statistics_timestamp: typing.Optional[int]) -> int:
-        return daily_start_of_range(requested_statistics_timestamp)
+    def start_of_range(self, timestamp: int) -> int:
+        return daily_start_of_range(timestamp)
 
     @staticmethod
     def prepare_data(parameters: list, **kwargs) -> list:

@@ -3,6 +3,7 @@ import dotenv
 import os
 import psycopg2
 import time
+import typing
 
 from aggregations import DailyActiveAccountsCount, DailyActiveContractsCount, DailyDeletedAccountsCount, \
     DailyDepositAmount, DailyGasUsed, DailyNewAccountsCount, DailyNewContractsCount, DailyNewUniqueContractsCount, \
@@ -12,7 +13,7 @@ from aggregations.db_tables import DAY_LEN_SECONDS, query_genesis_timestamp
 
 from datetime import datetime
 
-# TODO think how to get rid of these lists. It would be better if we don't need to populate them
+# TODO maybe we want to get rid of this list somehow
 STATS = {
     'daily_active_accounts_count': DailyActiveAccountsCount,
     'daily_active_contracts_count': DailyActiveContractsCount,
@@ -29,26 +30,13 @@ STATS = {
     'weekly_active_accounts_count': WeeklyActiveAccountsCount,
 }
 
-# For these aggregations, it's unable to compute all historical data by one SELECT query.
-# We have to compute these aggregations by pieces
-UNABLE_TO_COMPUTE_ALL_IN_ONCE = (
-    'daily_new_unique_contracts_count',
-    'daily_receipts_per_contract_count',
-    'daily_transactions_per_account_count',
-)
 
-
-def compute(analytics_connection, indexer_connection, statistics_type, statistics, timestamp, collect_all):
+def compute(analytics_connection, indexer_connection, statistics_type: str, statistics, timestamp: int):
     start_time = time.time()
     try:
-        timestamp = None if collect_all else (timestamp or int(time.time() - DAY_LEN_SECONDS))
-        printable_period = 'all period' if collect_all else f'{datetime.utcfromtimestamp(timestamp).date()}'
-        print(f'Started computing {statistics_type} for {printable_period}')
+        print(f'Started computing {statistics_type} for {datetime.utcfromtimestamp(timestamp).date()}')
 
-        if collect_all:
-            statistics.drop_table()
         statistics.create_table()
-
         result = statistics.collect(timestamp)
         statistics.store(result)
 
@@ -64,24 +52,24 @@ def compute(analytics_connection, indexer_connection, statistics_type, statistic
         raise e
 
 
-def compute_statistics(analytics_connection, indexer_connection, statistics_type, timestamp, collect_all):
+def compute_statistics(analytics_connection, indexer_connection, statistics_type: str, timestamp: typing.Optional[int],
+                       collect_all):
     statistics_cls = STATS[statistics_type]
     statistics = statistics_cls(analytics_connection, indexer_connection)
 
     for cls in statistics.dependencies():
         compute_statistics(analytics_connection, indexer_connection, cls, timestamp, collect_all)
 
-    if collect_all and statistics_type in UNABLE_TO_COMPUTE_ALL_IN_ONCE:
-        # It's not possible to hide this logic inside `collect_statistics` because the resulting list
-        # will be potentially too large to store it in RAM
-        # For example, we have > 1.6M lines for daily_transactions_per_account_count
+    if collect_all:
         statistics.drop_table()
         current_day = query_genesis_timestamp(indexer_connection)
         while current_day < int(time.time()):
-            compute(analytics_connection, indexer_connection, statistics_type, statistics, current_day, False)
+            compute(analytics_connection, indexer_connection, statistics_type, statistics, current_day)
             current_day += DAY_LEN_SECONDS
     else:
-        compute(analytics_connection, indexer_connection, statistics_type, statistics, timestamp, collect_all)
+        # Computing for yesterday by default
+        timestamp = timestamp or int(time.time() - DAY_LEN_SECONDS)
+        compute(analytics_connection, indexer_connection, statistics_type, statistics, timestamp)
 
 
 if __name__ == '__main__':
@@ -126,6 +114,7 @@ if __name__ == '__main__':
             # so we have to catch the general Exception here
             print('The connection is probably lost')
             print(e)
+            time.sleep(10)
 
         stats_need_to_compute -= stats_computed
         if not stats_need_to_compute:

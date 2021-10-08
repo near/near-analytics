@@ -1,6 +1,5 @@
 import abc
 import datetime
-import typing
 
 from .sql_aggregations import SqlAggregations
 from .db_tables import time_range_json
@@ -8,7 +7,7 @@ from .db_tables import time_range_json
 
 class PeriodicAggregations(SqlAggregations):
     @abc.abstractmethod
-    def start_of_range(self, requested_statistics_timestamp: typing.Optional[int]) -> int:
+    def start_of_range(self, timestamp: int) -> int:
         pass
 
     @property
@@ -17,13 +16,12 @@ class PeriodicAggregations(SqlAggregations):
         pass
 
     # requested_timestamp will be rounded to the start of the day, week (Monday), month, etc.
-    def collect(self, requested_timestamp: typing.Optional[int]) -> list:
+    def collect(self, requested_timestamp: int) -> list:
         from_timestamp = self.start_of_range(requested_timestamp)
         if not self.is_indexer_ready(from_timestamp + self.duration_seconds):
             return []
         with self.indexer_connection.cursor() as indexer_cursor:
-            select = self.sql_select if requested_timestamp else self.sql_select_all
-            indexer_cursor.execute(select, time_range_json(from_timestamp, self.duration_seconds))
+            indexer_cursor.execute(self.sql_select, time_range_json(from_timestamp, self.duration_seconds))
             result = indexer_cursor.fetchall()
             return self.prepare_data(result, start_of_range=from_timestamp)
 

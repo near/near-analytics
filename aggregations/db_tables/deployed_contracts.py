@@ -31,21 +31,7 @@ class DeployedContracts(SqlAggregations):
             FROM action_receipt_actions
             JOIN receipts ON receipts.receipt_id = action_receipt_actions.receipt_id
             WHERE receipts.included_in_block_timestamp >= %(timestamp)s
-            AND action_kind = 'DEPLOY_CONTRACT'
-            ORDER BY receipts.included_in_block_timestamp
-        '''
-
-    @property
-    def sql_select_all(self):
-        return '''
-            SELECT
-                action_receipt_actions.args->>'code_sha256' as code_sha256,
-                receipts.receiver_account_id as contract_id,
-                receipts.receipt_id as first_created_by_receipt_id,
-                receipts.included_in_block_timestamp as first_created_by_block_timestamp
-            FROM action_receipt_actions
-            JOIN receipts ON receipts.receipt_id = action_receipt_actions.receipt_id
-            AND action_kind = 'DEPLOY_CONTRACT'
+                AND action_kind = 'DEPLOY_CONTRACT'
             ORDER BY receipts.included_in_block_timestamp
         '''
 

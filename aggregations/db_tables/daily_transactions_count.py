@@ -1,5 +1,3 @@
-import typing
-
 from . import DAY_LEN_SECONDS, daily_start_of_range
 from ..periodic_aggregations import PeriodicAggregations
 
@@ -33,17 +31,6 @@ class DailyTransactionsCount(PeriodicAggregations):
         '''
 
     @property
-    def sql_select_all(self):
-        return '''
-            SELECT
-                DATE_TRUNC('day', TO_TIMESTAMP(DIV(transactions.block_timestamp, 1000 * 1000 * 1000))) AS date,
-                COUNT(*) AS transactions_count
-            FROM transactions
-            WHERE transactions.block_timestamp < (CAST(EXTRACT(EPOCH FROM DATE_TRUNC('day', NOW())) AS bigint) * 1000 * 1000 * 1000)
-            GROUP BY date
-        '''
-
-    @property
     def sql_insert(self):
         return '''
             INSERT INTO daily_transactions_count VALUES %s
@@ -54,5 +41,5 @@ class DailyTransactionsCount(PeriodicAggregations):
     def duration_seconds(self):
         return DAY_LEN_SECONDS
 
-    def start_of_range(self, requested_statistics_timestamp: typing.Optional[int]) -> int:
-        return daily_start_of_range(requested_statistics_timestamp)
+    def start_of_range(self, timestamp: int) -> int:
+        return daily_start_of_range(timestamp)
