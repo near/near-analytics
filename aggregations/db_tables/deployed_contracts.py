@@ -1,6 +1,10 @@
 from ..sql_aggregations import SqlAggregations
 
 
+# Since we don't have the logic that will check whether we collected all previous days,
+# AND this aggregation is required for other statistics,
+# (read: if deployed_contracts are not filled properly, others could be computed in a wrong way)
+# We decided to recompute this metric fully each time. That gives us confidence in our numbers.
 class DeployedContracts(SqlAggregations):
     @property
     def sql_create_table(self):
@@ -30,8 +34,7 @@ class DeployedContracts(SqlAggregations):
                 receipts.included_in_block_timestamp as first_created_by_block_timestamp
             FROM action_receipt_actions
             JOIN receipts ON receipts.receipt_id = action_receipt_actions.receipt_id
-            WHERE receipts.included_in_block_timestamp >= %(timestamp)s
-                AND action_kind = 'DEPLOY_CONTRACT'
+            WHERE action_kind = 'DEPLOY_CONTRACT'
             ORDER BY receipts.included_in_block_timestamp
         '''
 

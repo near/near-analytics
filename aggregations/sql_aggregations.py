@@ -48,9 +48,6 @@ class SqlAggregations(BaseAggregations):
 
     def collect(self, requested_timestamp: int) -> list:
         with self.indexer_connection.cursor() as indexer_cursor:
-            # We suppose here that we successfully collect everything on a daily basis,
-            # and we need to collect the data only for the last day. It's a dangerous guess.
-            # TODO add the check if all previous data was successfully collected
             indexer_cursor.execute(self.sql_select, time_json(daily_start_of_range(requested_timestamp)))
             result = indexer_cursor.fetchall()
             return self.prepare_data(result)
