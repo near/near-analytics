@@ -8,7 +8,7 @@ from aggregations import DailyActiveAccountsCount, DailyActiveContractsCount, Da
     DailyDepositAmount, DailyGasUsed, DailyNewAccountsCount, DailyNewContractsCount, DailyNewUniqueContractsCount, \
     DailyReceiptsPerContractCount, DailyTransactionsCount, DailyTransactionsPerAccountCount, DeployedContracts, \
     WeeklyActiveAccountsCount
-from aggregations.db_tables import GENESIS_SECONDS, DAY_LEN_SECONDS
+from aggregations.db_tables import DAY_LEN_SECONDS, query_genesis_timestamp
 
 from datetime import datetime
 
@@ -76,7 +76,7 @@ def compute_statistics(analytics_connection, indexer_connection, statistics_type
         # will be potentially too large to store it in RAM
         # For example, we have > 1.6M lines for daily_transactions_per_account_count
         statistics.drop_table()
-        current_day = GENESIS_SECONDS
+        current_day = query_genesis_timestamp(indexer_connection)
         while current_day < int(time.time()):
             compute(analytics_connection, indexer_connection, statistics_type, statistics, current_day, False)
             current_day += DAY_LEN_SECONDS
