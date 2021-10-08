@@ -39,11 +39,11 @@ UNABLE_TO_COMPUTE_ALL_IN_ONCE = (
 
 
 def compute(analytics_connection, indexer_connection, statistics_type, statistics, timestamp, collect_all):
+    start_time = time.time()
     try:
         timestamp = None if collect_all else (timestamp or int(time.time() - DAY_LEN_SECONDS))
         printable_period = 'all period' if collect_all else f'{datetime.utcfromtimestamp(timestamp).date()}'
         print(f'Started computing {statistics_type} for {printable_period}')
-        start_time = time.time()
 
         if collect_all:
             statistics.drop_table()
@@ -54,6 +54,11 @@ def compute(analytics_connection, indexer_connection, statistics_type, statistic
 
         print(f'Finished computing {statistics_type} in {round(time.time() - start_time, 1)} seconds')
     except Exception as e:
+        print(f'Failed to compute {statistics_type} (spent {round(time.time() - start_time, 1)} seconds)')
+        # psycopg2 does not provide proper exception if the connection is closed.
+        # The given exception is too broad, and sometimes psycopg2 gives different error types on a same reason.
+        # As a result, we can fail here if we try to rollback the transaction on the closed connection.
+        # We anyway handle the exception further, so I decided to ignore this issue here
         analytics_connection.rollback()
         indexer_connection.rollback()
         raise e
@@ -99,18 +104,34 @@ if __name__ == '__main__':
     ANALYTICS_DATABASE_URL = os.getenv('ANALYTICS_DATABASE_URL')
     INDEXER_DATABASE_URL = os.getenv('INDEXER_DATABASE_URL')
 
-    first_found_error = None
-    with psycopg2.connect(ANALYTICS_DATABASE_URL) as analytics_connection, \
-            psycopg2.connect(INDEXER_DATABASE_URL) as indexer_connection:
-        for stats_type in args.stats_types or STATS:
-            try:
-                compute_statistics(analytics_connection, indexer_connection, stats_type, args.timestamp, args.all)
-            except Exception as e:
-                if not first_found_error:
-                    first_found_error = e
-                print(e)
+    stats_need_to_compute = set(args.stats_types or STATS.keys())
+    for i in range(1, 6):
+        print(f'Attempt {i}...')
+        stats_computed = set()
+        try:
+            with psycopg2.connect(ANALYTICS_DATABASE_URL) as analytics_connection, \
+                    psycopg2.connect(INDEXER_DATABASE_URL) as indexer_connection:
+                for stats_type in stats_need_to_compute:
+                    try:
+                        compute_statistics(analytics_connection, indexer_connection, stats_type, args.timestamp,
+                                           args.all)
+                        stats_computed.add(stats_type)
+                    except psycopg2.Error as e:
+                        print(f'Failed to compute the value for {stats_type}')
+                        print(e)
+
+        except Exception as e:
+            # If we lost connection and try to catch related DB exception here,
+            # it raises a new one in a process of handling the initial one,
+            # so we have to catch the general Exception here
+            print('The connection is probably lost')
+            print(e)
+
+        stats_need_to_compute -= stats_computed
+        if not stats_need_to_compute:
+            break
 
     # It's important to have non-zero exit code in case of any errors,
     # It helps AWX to identify and report the problem
-    if first_found_error:
-        raise first_found_error
+    if stats_need_to_compute:
+        raise TimeoutError(f"Some aggregations could not be calculated: [{' '.join(stats_need_to_compute)}]")
