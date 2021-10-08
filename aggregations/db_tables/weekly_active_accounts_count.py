@@ -1,5 +1,3 @@
-import typing
-
 from . import WEEK_LEN_SECONDS, weekly_start_of_range
 from ..periodic_aggregations import PeriodicAggregations
 
@@ -33,17 +31,6 @@ class WeeklyActiveAccountsCount(PeriodicAggregations):
         '''
 
     @property
-    def sql_select_all(self):
-        return '''
-            SELECT
-                DATE_TRUNC('week', TO_TIMESTAMP(DIV(transactions.block_timestamp, 1000 * 1000 * 1000))) AS date,
-                COUNT(DISTINCT transactions.signer_account_id) AS active_accounts_count_by_week
-            FROM transactions
-            WHERE transactions.block_timestamp < ((CAST(EXTRACT(EPOCH FROM DATE_TRUNC('week', NOW())) AS bigint)) * 1000 * 1000 * 1000)
-            GROUP BY date
-        '''
-
-    @property
     def sql_insert(self):
         return '''
             INSERT INTO weekly_active_accounts_count VALUES %s
@@ -54,5 +41,5 @@ class WeeklyActiveAccountsCount(PeriodicAggregations):
     def duration_seconds(self):
         return WEEK_LEN_SECONDS
 
-    def start_of_range(self, requested_statistics_timestamp: typing.Optional[int]) -> int:
-        return weekly_start_of_range(requested_statistics_timestamp)
+    def start_of_range(self, timestamp: int) -> int:
+        return weekly_start_of_range(timestamp)

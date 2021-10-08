@@ -1,6 +1,3 @@
-import time
-import typing
-
 from datetime import date, datetime, timedelta
 
 DAY_LEN_SECONDS = 86400
@@ -16,17 +13,14 @@ def query_genesis_timestamp(indexer_connection) -> int:
             '''
     with indexer_connection.cursor() as indexer_cursor:
         indexer_cursor.execute(select_genesis_timestamp)
-        return indexer_cursor.fetchone()[0]
+        return int(indexer_cursor.fetchone()[0])
 
-def daily_start_of_range(provided_timestamp: typing.Optional[int]) -> int:
-    yesterday_timestamp = round(time.time()) - DAY_LEN_SECONDS
-    timestamp = provided_timestamp or yesterday_timestamp
+
+def daily_start_of_range(timestamp: int) -> int:
     return timestamp - timestamp % DAY_LEN_SECONDS
 
 
-def weekly_start_of_range(provided_timestamp: typing.Optional[int]) -> int:
-    previous_week_timestamp = round(time.time()) - WEEK_LEN_SECONDS
-    timestamp = provided_timestamp or previous_week_timestamp
+def weekly_start_of_range(timestamp: int) -> int:
     day: date = datetime.utcfromtimestamp(timestamp).date()
     monday: date = day - timedelta(days=day.weekday())
     seconds_since_epoch = (monday - datetime(1970, 1, 1).date()).total_seconds()

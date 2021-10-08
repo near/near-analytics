@@ -1,5 +1,4 @@
 import datetime
-import typing
 
 from . import DAY_LEN_SECONDS, daily_start_of_range, time_json
 from ..periodic_aggregations import PeriodicAggregations
@@ -40,22 +39,13 @@ class DailyNewUniqueContractsCount(PeriodicAggregations):
         '''
 
     @property
-    def sql_select_all(self):
-        # It's not a good idea to calculate it through one select because select will be too complicated
-        # We have to fill it by for-cycle on Python level
-        raise NotImplementedError
-
-    @property
     def sql_insert(self):
         return '''
             INSERT INTO daily_new_unique_contracts_count VALUES %s
             ON CONFLICT DO NOTHING
         '''
 
-    def collect(self, requested_timestamp: typing.Optional[int]) -> list:
-        if not requested_timestamp:
-            raise NotImplementedError
-
+    def collect(self, requested_timestamp: int) -> list:
         # Get new contracts from Indexer DB. We use `distinct` in SQL,
         # But we still have no guarantees because the contract could be added a week ago
         new_contracts = super().collect(requested_timestamp)
@@ -82,8 +72,8 @@ class DailyNewUniqueContractsCount(PeriodicAggregations):
     def duration_seconds(self):
         return DAY_LEN_SECONDS
 
-    def start_of_range(self, requested_statistics_timestamp: typing.Optional[int]) -> int:
-        return daily_start_of_range(requested_statistics_timestamp)
+    def start_of_range(self, timestamp: int) -> int:
+        return daily_start_of_range(timestamp)
 
     @staticmethod
     def prepare_data(parameters, **kwargs) -> list:
