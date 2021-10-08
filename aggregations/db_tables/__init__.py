@@ -5,9 +5,18 @@ from datetime import date, datetime, timedelta
 
 DAY_LEN_SECONDS = 86400
 WEEK_LEN_SECONDS = DAY_LEN_SECONDS * 7
-# TODO we need to get rid of knowing "start of mainnet". We work not only for mainnet
-GENESIS_SECONDS = 1595350551
 
+
+def query_genesis_timestamp(indexer_connection) -> int:
+    select_genesis_timestamp = '''
+                SELECT DIV(block_timestamp, 1000 * 1000 * 1000)
+                FROM blocks
+                ORDER BY block_timestamp
+                LIMIT 1
+            '''
+    with indexer_connection.cursor() as indexer_cursor:
+        indexer_cursor.execute(select_genesis_timestamp)
+        return indexer_cursor.fetchone()[0]
 
 def daily_start_of_range(provided_timestamp: typing.Optional[int]) -> int:
     yesterday_timestamp = round(time.time()) - DAY_LEN_SECONDS
