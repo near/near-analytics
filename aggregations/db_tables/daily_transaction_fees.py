@@ -5,12 +5,12 @@ from ..periodic_aggregations import PeriodicAggregations
 class DailyTransactionFees(PeriodicAggregations):
     @property
     def sql_create_table(self):
-        # Use numeric(30,0) per discussion in https://github.com/near/near-analytics/issues/17.
+        # Use numeric(50,0) per discussion in https://github.com/near/near-analytics/issues/17.
         return """
             CREATE TABLE IF NOT EXISTS daily_transaction_fees
             (
                 collected_for_day   DATE PRIMARY KEY,
-                transaction_fees    numeric(30, 0) NOT NULL
+                transaction_fees    numeric(50, 0) NOT NULL
             )
         """
 
