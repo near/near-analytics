@@ -5,7 +5,9 @@ from ..periodic_aggregations import PeriodicAggregations
 class DailyTransactionFees(PeriodicAggregations):
     @property
     def sql_create_table(self):
-        # Use numeric(50,0) per discussion in https://github.com/near/near-analytics/issues/17.
+        # In Indexer, we store all the balances in numeric(45,0), including total_supply.
+        # Assuming the users spend on fees not more than total_supply inside each second,
+        # I suggest to use numeric(50, 0)
         return """
             CREATE TABLE IF NOT EXISTS daily_transaction_fees
             (
