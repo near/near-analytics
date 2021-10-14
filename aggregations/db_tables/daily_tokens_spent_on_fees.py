@@ -2,6 +2,10 @@ from . import DAY_LEN_SECONDS, daily_start_of_range
 from ..periodic_aggregations import PeriodicAggregations
 
 
+# The fee is usually burnt in Near architecture.
+# However, `daily_tokens_spent_on_fees` are not equal to daily tokens burnt by fees.
+# Part of this sum goes to royalty for contract creators. See the example of computation here:
+# https://github.com/telezhnaya/docs/blob/master/docs/tokens/balances.md#calling-a-function
 class DailyTokensSpentOnFees(PeriodicAggregations):
     @property
     def sql_create_table(self):
@@ -11,8 +15,8 @@ class DailyTokensSpentOnFees(PeriodicAggregations):
         return """
             CREATE TABLE IF NOT EXISTS daily_tokens_spent_on_fees
             (
-                collected_for_day   DATE PRIMARY KEY,
-                tokens_spent_on_fees    numeric(50, 0) NOT NULL
+                collected_for_day    DATE PRIMARY KEY,
+                tokens_spent_on_fees numeric(50, 0) NOT NULL
             )
         """
 
