@@ -2,24 +2,24 @@ from . import DAY_LEN_SECONDS, daily_start_of_range
 from ..periodic_aggregations import PeriodicAggregations
 
 
-class DailyTransactionFees(PeriodicAggregations):
+class DailyTokensSpentOnFees(PeriodicAggregations):
     @property
     def sql_create_table(self):
         # In Indexer, we store all the balances in numeric(45,0), including total_supply.
         # Assuming the users spend on fees not more than total_supply inside each second,
         # I suggest to use numeric(50, 0)
         return """
-            CREATE TABLE IF NOT EXISTS daily_transaction_fees
+            CREATE TABLE IF NOT EXISTS daily_tokens_spent_on_fees
             (
                 collected_for_day   DATE PRIMARY KEY,
-                transaction_fees    numeric(50, 0) NOT NULL
+                tokens_spent_on_fees    numeric(50, 0) NOT NULL
             )
         """
 
     @property
     def sql_drop_table(self):
         return """
-            DROP TABLE IF EXISTS daily_transaction_fees
+            DROP TABLE IF EXISTS daily_tokens_spent_on_fees
         """
 
     @property
@@ -35,7 +35,7 @@ class DailyTransactionFees(PeriodicAggregations):
     @property
     def sql_insert(self):
         return """
-            INSERT INTO daily_transaction_fees VALUES %s
+            INSERT INTO daily_tokens_spent_on_fees VALUES %s
             ON CONFLICT DO NOTHING
         """
 

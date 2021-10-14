@@ -7,7 +7,7 @@ from .db_tables.daily_new_accounts_count import DailyNewAccountsCount
 from .db_tables.daily_new_contracts_count import DailyNewContractsCount
 from .db_tables.daily_new_unique_contracts_count import DailyNewUniqueContractsCount
 from .db_tables.daily_receipts_per_contract_count import DailyReceiptsPerContractCount
-from .db_tables.daily_transaction_fees import DailyTransactionFees
+from .db_tables.daily_tokens_spent_on_fees import DailyTokensSpentOnFees
 from .db_tables.daily_transactions_count import DailyTransactionsCount
 from .db_tables.daily_transactions_per_account_count import DailyTransactionsPerAccountCount
 from .db_tables.deployed_contracts import DeployedContracts
