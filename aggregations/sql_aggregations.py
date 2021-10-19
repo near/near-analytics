@@ -49,7 +49,7 @@ class SqlAggregations(BaseAggregations):
 
     def collect(self, requested_timestamp: int) -> list:
         if self.sql_select == 'manual':
-            with open("/Users/james_datacult/Documents/GitHub/near-analytics/aggregations/csv/near_apps.csv") as csvFile: 
+            with open("aggregations/csv/near_apps.csv") as csvFile: 
                 read = csv.reader(csvFile, delimiter=',')
                 result = list(read)
                 csvFile.close()
