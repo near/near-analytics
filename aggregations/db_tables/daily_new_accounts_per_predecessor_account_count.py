@@ -1,7 +1,8 @@
+import datetime
+
 from . import DAY_LEN_SECONDS, daily_start_of_range
 from ..periodic_aggregations import PeriodicAggregations
 
-DailyNewAccountsPerPredecessorAccountCount
 class DailyNewAccountsPerPredecessorAccountCount(PeriodicAggregations):
     @property
     def sql_create_table(self):
@@ -15,7 +16,7 @@ class DailyNewAccountsPerPredecessorAccountCount(PeriodicAggregations):
                 collected_for_day DATE NOT NULL,
                 predecessor_account_id TEXT NOT NULL,
                 new_accounts_count BIGINT NOT NULL,
-                CONSTRAINT daily_transactions_per_account_count_pk PRIMARY KEY (collected_for_day, predecessor_account_id)
+                PRIMARY KEY (collected_for_day, predecessor_account_id)
             );
             CREATE INDEX IF NOT EXISTS daily_new_accounts_per_predecessor_account_count_idx
                 ON daily_new_accounts_per_predecessor_account_count (collected_for_day, new_accounts_count DESC)
@@ -53,3 +54,8 @@ class DailyNewAccountsPerPredecessorAccountCount(PeriodicAggregations):
 
     def start_of_range(self, timestamp: int) -> int:
         return daily_start_of_range(timestamp)
+
+    @staticmethod
+    def prepare_data(parameters: list, **kwargs) -> list:
+        computed_for = datetime.datetime.utcfromtimestamp(kwargs['start_of_range']).strftime('%Y-%m-%d')
+        return [(computed_for, predecessor_account_id, new_accounts_count) for (predecessor_account_id, new_accounts_count) in parameters]

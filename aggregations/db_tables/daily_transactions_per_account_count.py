@@ -3,7 +3,6 @@ import datetime
 from . import DAY_LEN_SECONDS, daily_start_of_range
 from ..periodic_aggregations import PeriodicAggregations
 
-
 class DailyTransactionsPerAccountCount(PeriodicAggregations):
     @property
     def sql_create_table(self):
