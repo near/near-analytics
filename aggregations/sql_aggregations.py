@@ -1,7 +1,6 @@
 import abc
 import psycopg2
 import psycopg2.extras
-import csv
 
 from .base_aggregations import BaseAggregations
 from .db_tables import time_json, daily_start_of_range
@@ -48,17 +47,10 @@ class SqlAggregations(BaseAggregations):
                 self.analytics_connection.rollback()
 
     def collect(self, requested_timestamp: int) -> list:
-        if self.sql_select == 'manual':
-            with open("aggregations/csv/near_apps.csv") as csvFile: 
-                read = csv.reader(csvFile, delimiter=',')
-                result = list(read)
-                csvFile.close()
-                return self.prepare_data(result)
-        else:    
-            with self.indexer_connection.cursor() as indexer_cursor:
-                indexer_cursor.execute(self.sql_select, time_json(daily_start_of_range(requested_timestamp)))
-                result = indexer_cursor.fetchall()
-                return self.prepare_data(result)
+        with self.indexer_connection.cursor() as indexer_cursor:
+            indexer_cursor.execute(self.sql_select, time_json(daily_start_of_range(requested_timestamp)))
+            result = indexer_cursor.fetchall()
+            return self.prepare_data(result)
 
     def store(self, parameters: list):
         chunk_size = 100
