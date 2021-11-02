@@ -8,7 +8,7 @@ import typing
 from aggregations import DailyActiveAccountsCount, DailyActiveContractsCount, DailyDeletedAccountsCount, \
     DailyDepositAmount, DailyGasUsed, DailyNewAccountsCount, DailyNewContractsCount, DailyNewUniqueContractsCount, \
     DailyReceiptsPerContractCount, DailyTokensSpentOnFees, DailyTransactionsCount, DailyTransactionsPerAccountCount, \
-    DeployedContracts, WeeklyActiveAccountsCount, EcosystemEntities
+    DeployedContracts, WeeklyActiveAccountsCount, NearEcosystemEntities
 from aggregations.db_tables import DAY_LEN_SECONDS, query_genesis_timestamp
 
 from datetime import datetime
@@ -29,7 +29,7 @@ STATS = {
     'daily_transactions_per_account_count': DailyTransactionsPerAccountCount,
     'deployed_contracts': DeployedContracts,
     'weekly_active_accounts_count': WeeklyActiveAccountsCount,
-    'ecosystem_entities': EcosystemEntities,
+    'near_ecosystem_entities': NearEcosystemEntities,
 }
 
 

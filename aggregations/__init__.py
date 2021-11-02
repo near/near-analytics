@@ -12,5 +12,5 @@ from .db_tables.daily_transactions_count import DailyTransactionsCount
 from .db_tables.daily_transactions_per_account_count import DailyTransactionsPerAccountCount
 from .db_tables.deployed_contracts import DeployedContracts
 from .db_tables.weekly_active_accounts_count import WeeklyActiveAccountsCount
-from .db_tables.ecosystem_entities import EcosystemEntities
+from .db_tables.near_ecosystem_entities import NearEcosystemEntities
 
