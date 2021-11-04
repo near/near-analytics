@@ -66,4 +66,3 @@ class SqlAggregations(BaseAggregations):
     @staticmethod
     def prepare_data(parameters, **kwargs) -> list:
         return parameters
-        
