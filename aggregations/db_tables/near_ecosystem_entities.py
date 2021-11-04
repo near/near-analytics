@@ -41,4 +41,4 @@ class NearEcosystemEntities(SqlAggregations):
             result = list(read)
             csvFile.close()
             return result
-        
+           
