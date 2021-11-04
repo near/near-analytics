@@ -5,7 +5,6 @@ from ..sql_aggregations import SqlAggregations
 class NearEcosystemEntities(SqlAggregations):
     @property
     def sql_create_table(self):
-        # All fields are text, of varying length
         return '''
             CREATE TABLE IF NOT EXISTS near_ecosystem_entities
             (
@@ -36,8 +35,6 @@ class NearEcosystemEntities(SqlAggregations):
             ON CONFLICT DO NOTHING
         '''  
 
-#overload collect method defined in sql_aggregations
-#    @staticmethod
     def collect(self, requested_timestamp: int):
         with open("aggregations/csv/near_ecosystem_entities.csv") as csvFile:   
             read = csv.reader(csvFile, delimiter=',')
