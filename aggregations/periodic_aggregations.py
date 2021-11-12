@@ -2,7 +2,7 @@ import abc
 import datetime
 
 from .sql_aggregations import SqlAggregations
-from .db_tables import time_range_json
+from .db_tables import time_range_json, to_nanos
 
 
 class PeriodicAggregations(SqlAggregations):
@@ -44,4 +44,6 @@ class PeriodicAggregations(SqlAggregations):
         with self.indexer_connection.cursor() as indexer_cursor:
             indexer_cursor.execute(select_latest_timestamp)
             latest_timestamp = indexer_cursor.fetchone()[0]
-            return latest_timestamp >= needed_timestamp
+            # Adding 10 minutes to be sure that all the data is collected
+            # Important for DailyIngoingTransactionsPerAccountCount
+            return latest_timestamp >= needed_timestamp + to_nanos(10 * 60)
