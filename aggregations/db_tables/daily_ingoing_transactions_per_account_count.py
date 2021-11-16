@@ -38,10 +38,16 @@ class DailyIngoingTransactionsPerAccountCount(PeriodicAggregations):
         # Other receipts from the next day will be naturally ignored.
         # Transactions border remains the same, taking only transactions for the specified day.
         # If you want to change 10 minutes constant, fix it also in PeriodicAggregations.is_indexer_ready
+
+        # Conditions on receipts timestamps are added because of performance issues:
+        # Joining 2 relatively small tables work much faster (4-6s VS 70-150s)
+        # Conditions on transactions timestamps are required by design.
+        # Though, they were placed into JOIN section also because of performance issues. Not sure why,
+        # but it changes the query plan to a better one and gives much better performance
         return '''
             SELECT
                 receipts.receiver_account_id,
-                COUNT(DISTINCT transactions.transaction_hash) AS transactions_count
+                COUNT(DISTINCT transactions.transaction_hash) AS ingoing_transactions_count
             FROM transactions
             LEFT JOIN receipts ON receipts.originated_from_transaction_hash = transactions.transaction_hash
                 AND transactions.block_timestamp >= %(from_timestamp)s
@@ -67,6 +73,6 @@ class DailyIngoingTransactionsPerAccountCount(PeriodicAggregations):
         return daily_start_of_range(timestamp)
 
     @staticmethod
-    def prepare_data(parameters: list, **kwargs) -> list:
-        computed_for = datetime.datetime.utcfromtimestamp(kwargs['start_of_range']).strftime('%Y-%m-%d')
+    def prepare_data(parameters: list, *, start_of_range=None, **kwargs) -> list:
+        computed_for = datetime.datetime.utcfromtimestamp(start_of_range).strftime('%Y-%m-%d')
         return [(computed_for, account_id, count) for (account_id, count) in parameters]
