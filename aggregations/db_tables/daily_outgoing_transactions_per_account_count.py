@@ -4,10 +4,7 @@ from . import DAY_LEN_SECONDS, daily_start_of_range
 from ..periodic_aggregations import PeriodicAggregations
 
 
-# DEPRECATED
-# Use DailyOutgoingTransactionsPerAccountCount instead
-# Will be deleted after migration in Explorer
-class DailyTransactionsPerAccountCount(PeriodicAggregations):
+class DailyOutgoingTransactionsPerAccountCount(PeriodicAggregations):
     @property
     def sql_create_table(self):
         # Suppose we have at most 10^5 (100K) transactions per second.
@@ -15,21 +12,21 @@ class DailyTransactionsPerAccountCount(PeriodicAggregations):
         # It gives ~10^10 transactions per day.
         # It means we fit into BIGINT (10^18)
         return '''
-            CREATE TABLE IF NOT EXISTS daily_transactions_per_account_count
+            CREATE TABLE IF NOT EXISTS daily_outgoing_transactions_per_account_count
             (
-                collected_for_day  DATE NOT NULL,
-                account_id         TEXT NOT NULL,
-                transactions_count BIGINT NOT NULL,
-                CONSTRAINT daily_transactions_per_account_count_pk PRIMARY KEY (collected_for_day, account_id)
+                collected_for_day           DATE   NOT NULL,
+                account_id                  TEXT   NOT NULL,
+                outgoing_transactions_count BIGINT NOT NULL,
+                CONSTRAINT daily_outgoing_transactions_per_account_count_pk PRIMARY KEY (collected_for_day, account_id)
             );
-            CREATE INDEX IF NOT EXISTS daily_transactions_per_account_count_idx
-                ON daily_transactions_per_account_count (collected_for_day, transactions_count DESC)
+            CREATE INDEX IF NOT EXISTS daily_outgoing_transactions_per_account_count_idx
+                ON daily_outgoing_transactions_per_account_count (collected_for_day, outgoing_transactions_count DESC)
         '''
 
     @property
     def sql_drop_table(self):
         return '''
-            DROP TABLE IF EXISTS daily_transactions_per_account_count
+            DROP TABLE IF EXISTS daily_outgoing_transactions_per_account_count
         '''
 
     @property
@@ -37,7 +34,7 @@ class DailyTransactionsPerAccountCount(PeriodicAggregations):
         return '''
             SELECT
                 signer_account_id,
-                COUNT(*) AS transactions_count
+                COUNT(*) AS outgoing_transactions_count
             FROM transactions
             WHERE transactions.block_timestamp >= %(from_timestamp)s
                 AND transactions.block_timestamp < %(to_timestamp)s
@@ -47,7 +44,7 @@ class DailyTransactionsPerAccountCount(PeriodicAggregations):
     @property
     def sql_insert(self):
         return '''
-            INSERT INTO daily_transactions_per_account_count VALUES %s
+            INSERT INTO daily_outgoing_transactions_per_account_count VALUES %s
             ON CONFLICT DO NOTHING
         '''
 
@@ -59,6 +56,6 @@ class DailyTransactionsPerAccountCount(PeriodicAggregations):
         return daily_start_of_range(timestamp)
 
     @staticmethod
-    def prepare_data(parameters: list, **kwargs) -> list:
-        computed_for = datetime.datetime.utcfromtimestamp(kwargs['start_of_range']).strftime('%Y-%m-%d')
+    def prepare_data(parameters: list, *, start_of_range=None, **kwargs) -> list:
+        computed_for = datetime.datetime.utcfromtimestamp(start_of_range).strftime('%Y-%m-%d')
         return [(computed_for, account_id, count) for (account_id, count) in parameters]

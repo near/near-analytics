@@ -57,6 +57,6 @@ class DailyReceiptsPerContractCount(PeriodicAggregations):
         return daily_start_of_range(timestamp)
 
     @staticmethod
-    def prepare_data(parameters: list, **kwargs) -> list:
-        computed_for = datetime.datetime.utcfromtimestamp(kwargs['start_of_range']).strftime('%Y-%m-%d')
+    def prepare_data(parameters: list, *, start_of_range=None, **kwargs) -> list:
+        computed_for = datetime.datetime.utcfromtimestamp(start_of_range).strftime('%Y-%m-%d')
         return [(computed_for, contract_id, count) for (contract_id, count) in parameters]
