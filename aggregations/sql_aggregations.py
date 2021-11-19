@@ -1,7 +1,6 @@
 import abc
 import psycopg2
 import psycopg2.extras
-import csv
 
 from .base_aggregations import BaseAggregations
 from .db_tables import time_json, daily_start_of_range
