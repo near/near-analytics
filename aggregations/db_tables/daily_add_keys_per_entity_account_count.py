@@ -67,18 +67,19 @@ class DailyAddKeysPerEntityAccountCount(PeriodicAggregations):
             analytics_cursor.execute(all_apps, time_json(from_timestamp))
             app_contracts = analytics_cursor.fetchall()
 
+        #retrieve and merge datasets
         pd_daily_add_keys = pd.DataFrame (daily_add_keys, index= None, columns = ['computed_for','receiver_id','add_keys_count'])
-        pd_app_contracts = pd.DataFrame (app_contracts, index= None, columns = ['token','slug'])
-        
+        pd_app_contracts = pd.DataFrame (app_contracts, index= None, columns = ['token','slug'])        
         pd_merge = pd_daily_add_keys.merge(pd_app_contracts, how='cross')
-        #match
+
+        #match - Ideally would be wildcard in future
         match_col = np.where(pd_merge['receiver_id'] == pd_merge['token'], True, False)
         pd_merge = pd_merge[match_col]
-        #drop unneeded columns
+        #drop unneeded columns for duplicate check
         pd_merge=pd_merge[['computed_for','slug', 'add_keys_count']]
         #remove duplicates
         pd_merge = pd_merge.drop_duplicates()
-        #convert df to list
+        #aggregate & convert df to list
         output = pd_merge.groupby(['computed_for','slug'], as_index=False).agg({"add_keys_count": "sum"})
         output_values = output.values
         return output_values.tolist()
