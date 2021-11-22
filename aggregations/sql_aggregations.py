@@ -62,7 +62,6 @@ class SqlAggregations(BaseAggregations):
                 except psycopg2.errors.UniqueViolation:
                     self.analytics_connection.rollback()
 
-
     # Overload this method if you need to prepare data before insert
     @staticmethod
     def prepare_data(parameters, **kwargs) -> list:
