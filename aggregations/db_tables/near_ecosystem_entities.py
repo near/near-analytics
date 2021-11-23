@@ -14,7 +14,8 @@ class NearEcosystemEntities(SqlAggregations):
                 website     TEXT, 
                 category    TEXT,    
                 status      TEXT, 
-                contract    TEXT
+                contract    TEXT,
+                logo        TEXT
             )
         '''
 
