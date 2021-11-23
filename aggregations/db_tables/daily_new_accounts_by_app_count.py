@@ -46,11 +46,10 @@ class DailyNewAccountsByAppCount(PeriodicAggregations):
         #concat table values into case statement
         string = ''
         for index, tuple in enumerate(app_contracts):
-            contract = ''
+#            contract = ''
             contract = str(tuple[0])
-            app = ''
             app = str(tuple[1])
-            string += str("WHEN args ->'access_key' -> 'permission' -> 'permission_details' ->> 'receiver_id' LIKE '%%.' ||'"  + contract.strip() + "' THEN '" +  app.strip() + "'")
+            string += str("WHEN args ->'access_key' -> 'permission' -> 'permission_details' ->> 'receiver_id' LIKE '%%' ||'"  + contract.strip() + "' THEN '" +  app.strip() + "'")
         
         opener = '''SELECT CASE '''
         closer = '''ELSE 'All Others' END as app_id ,
