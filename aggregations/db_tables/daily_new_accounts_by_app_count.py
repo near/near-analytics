@@ -34,16 +34,25 @@ class DailyNewAccountsByAppCount(PeriodicAggregations):
     @property
     def sql_select(self):
         return '''
-            SELECT args ->'access_key' -> 'permission' -> 'permission_details' ->> 'receiver_id' as receiver_account_id ,
+            SELECT 
+            CASE 
+            ''' + 
+
+            for index, tuple in enumerate(app_contracts):
+                contract = tuple[0]
+                app = tuple[1]
+                print("WHEN args ->'access_key' -> 'permission' -> 'permission_details' ->> 'receiver_id LIKE '%.' || '", contract, "' THEN '", app, "'")
+            +''' 
+            args ->'access_key' -> 'permission' -> 'permission_details' ->> 'receiver_id' as receiver_account_id ,
             count(*) as new_accounts
-                FROM public.action_receipt_actions
-                WHERE action_kind = 'ADD_KEY'
+            FROM public.action_receipt_actions
+            WHERE action_kind = 'ADD_KEY'
                 AND args ->'access_key' -> 'permission' ->> 'permission_kind' = 'FUNCTION_CALL'
                 AND args ->'access_key' -> 'permission' -> 'permission_details' ->> 'receiver_id' != receipt_receiver_account_id 
                 AND args ->'access_key' -> 'permission' -> 'permission_details' ->> 'receiver_id' != 'near'    
                 AND receipt_included_in_block_timestamp >= %(from_timestamp)s
                 AND receipt_included_in_block_timestamp < %(to_timestamp)s
-                GROUP BY args ->'access_key' -> 'permission' -> 'permission_details' ->> 'receiver_id'
+            GROUP BY 1
         '''
 
     @property
@@ -66,6 +75,7 @@ class DailyNewAccountsByAppCount(PeriodicAggregations):
             # Get all contracts that were added before our time range
             analytics_cursor.execute(all_apps, time_json(from_timestamp))
             app_contracts = analytics_cursor.fetchall()
+
 
         #retrieve and merge datasets
         pd_daily_add_keys = pd.DataFrame (daily_add_keys, index= None, columns = ['computed_for','receiver_id','new_accounts'])
