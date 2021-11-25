@@ -5,12 +5,12 @@ WEEK_LEN_SECONDS = DAY_LEN_SECONDS * 7
 
 
 def query_genesis_timestamp(indexer_connection) -> int:
-    select_genesis_timestamp = '''
+    select_genesis_timestamp = """
                 SELECT DIV(block_timestamp, 1000 * 1000 * 1000)
                 FROM blocks
                 ORDER BY block_timestamp
                 LIMIT 1
-            '''
+            """
     with indexer_connection.cursor() as indexer_cursor:
         indexer_cursor.execute(select_genesis_timestamp)
         return int(indexer_cursor.fetchone()[0])
@@ -33,12 +33,10 @@ def to_nanos(timestamp_seconds):
 
 def time_range_json(from_timestamp, duration):
     return {
-        'from_timestamp': to_nanos(from_timestamp),
-        'to_timestamp': to_nanos(from_timestamp + duration)
+        "from_timestamp": to_nanos(from_timestamp),
+        "to_timestamp": to_nanos(from_timestamp + duration),
     }
 
 
 def time_json(timestamp):
-    return {
-        'timestamp': to_nanos(timestamp)
-    }
+    return {"timestamp": to_nanos(timestamp)}

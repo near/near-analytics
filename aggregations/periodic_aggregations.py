@@ -21,7 +21,9 @@ class PeriodicAggregations(SqlAggregations):
         if not self.is_indexer_ready(from_timestamp + self.duration_seconds):
             return []
         with self.indexer_connection.cursor() as indexer_cursor:
-            indexer_cursor.execute(self.sql_select, time_range_json(from_timestamp, self.duration_seconds))
+            indexer_cursor.execute(
+                self.sql_select, time_range_json(from_timestamp, self.duration_seconds)
+            )
             result = indexer_cursor.fetchall()
             return self.prepare_data(result, start_of_range=from_timestamp)
 
@@ -29,18 +31,23 @@ class PeriodicAggregations(SqlAggregations):
     def prepare_data(parameters: list, *, start_of_range=None, **kwargs) -> list:
         # We usually have one-value returns, we need to merge it with corresponding date
         if len(parameters[0]) == 1:
-            assert len(parameters) == 1, 'Only one value expected. Can\'t be sure that we need to add timestamp'
+            assert (
+                len(parameters) == 1
+            ), "Only one value expected. Can't be sure that we need to add timestamp"
             computed_for = datetime.datetime.utcfromtimestamp(start_of_range)
             parameters = [(computed_for, parameters[0][0] or 0)]
-        return [(computed_for.strftime('%Y-%m-%d'), data) for (computed_for, data) in parameters]
+        return [
+            (computed_for.strftime("%Y-%m-%d"), data)
+            for (computed_for, data) in parameters
+        ]
 
     def is_indexer_ready(self, needed_timestamp):
-        select_latest_timestamp = '''
+        select_latest_timestamp = """
             SELECT DIV(block_timestamp, 1000 * 1000 * 1000)
             FROM blocks
             ORDER BY block_timestamp DESC
             LIMIT 1
-        '''
+        """
         with self.indexer_connection.cursor() as indexer_cursor:
             indexer_cursor.execute(select_latest_timestamp)
             latest_timestamp = indexer_cursor.fetchone()[0]
