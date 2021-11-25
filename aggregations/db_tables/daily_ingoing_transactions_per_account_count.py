@@ -11,7 +11,7 @@ class DailyIngoingTransactionsPerAccountCount(PeriodicAggregations):
         # In the worst case, they are all from one account.
         # It gives ~10^10 transactions per day.
         # It means we fit into BIGINT (10^18)
-        return '''
+        return """
             CREATE TABLE IF NOT EXISTS daily_ingoing_transactions_per_account_count
             (
                 collected_for_day          DATE   NOT NULL,
@@ -21,13 +21,13 @@ class DailyIngoingTransactionsPerAccountCount(PeriodicAggregations):
             );
             CREATE INDEX IF NOT EXISTS daily_ingoing_transactions_per_account_count_idx
                 ON daily_ingoing_transactions_per_account_count (collected_for_day, ingoing_transactions_count DESC)
-        '''
+        """
 
     @property
     def sql_drop_table(self):
-        return '''
+        return """
             DROP TABLE IF EXISTS daily_ingoing_transactions_per_account_count
-        '''
+        """
 
     @property
     def sql_select(self):
@@ -44,7 +44,7 @@ class DailyIngoingTransactionsPerAccountCount(PeriodicAggregations):
         # Conditions on transactions timestamps are required by design.
         # Though, they were placed into JOIN section also because of performance issues. Not sure why,
         # but it changes the query plan to a better one and gives much better performance
-        return '''
+        return """
             SELECT
                 receipts.receiver_account_id,
                 COUNT(DISTINCT transactions.transaction_hash) AS ingoing_transactions_count
@@ -56,14 +56,14 @@ class DailyIngoingTransactionsPerAccountCount(PeriodicAggregations):
                 AND receipts.included_in_block_timestamp < (%(to_timestamp)s + 600000000000)
                 AND transactions.signer_account_id != receipts.receiver_account_id 
             GROUP BY receipts.receiver_account_id
-        '''
+        """
 
     @property
     def sql_insert(self):
-        return '''
+        return """
             INSERT INTO daily_ingoing_transactions_per_account_count VALUES %s
             ON CONFLICT DO NOTHING
-        '''
+        """
 
     @property
     def duration_seconds(self):
@@ -74,5 +74,7 @@ class DailyIngoingTransactionsPerAccountCount(PeriodicAggregations):
 
     @staticmethod
     def prepare_data(parameters: list, *, start_of_range=None, **kwargs) -> list:
-        computed_for = datetime.datetime.utcfromtimestamp(start_of_range).strftime('%Y-%m-%d')
+        computed_for = datetime.datetime.utcfromtimestamp(start_of_range).strftime(
+            "%Y-%m-%d"
+        )
         return [(computed_for, account_id, count) for (account_id, count) in parameters]

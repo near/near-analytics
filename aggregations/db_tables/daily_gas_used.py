@@ -9,36 +9,36 @@ class DailyGasUsed(PeriodicAggregations):
         # We produce the block each second (10^5).
         # We plan to use several chunks, let's say max chunks count is 10^3
         # 28 sounds weird, so I suggest numeric(30, 0)
-        return '''
+        return """
             CREATE TABLE IF NOT EXISTS daily_gas_used
             (
                 collected_for_day DATE PRIMARY KEY,
                 gas_used          numeric(30, 0) NOT NULL
             )
-        '''
+        """
 
     @property
     def sql_drop_table(self):
-        return '''
+        return """
             DROP TABLE IF EXISTS daily_gas_used
-        '''
+        """
 
     @property
     def sql_select(self):
-        return '''
+        return """
             SELECT SUM(chunks.gas_used)
             FROM blocks
             JOIN chunks ON chunks.included_in_block_hash = blocks.block_hash
             WHERE blocks.block_timestamp >= %(from_timestamp)s
                 AND blocks.block_timestamp < %(to_timestamp)s
-        '''
+        """
 
     @property
     def sql_insert(self):
-        return '''
+        return """
             INSERT INTO daily_gas_used VALUES %s
             ON CONFLICT DO NOTHING
-        '''
+        """
 
     @property
     def duration_seconds(self):
