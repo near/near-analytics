@@ -11,7 +11,7 @@ class DailyOutgoingTransactionsPerAccountCount(PeriodicAggregations):
         # In the worst case, they are all from one account.
         # It gives ~10^10 transactions per day.
         # It means we fit into BIGINT (10^18)
-        return '''
+        return """
             CREATE TABLE IF NOT EXISTS daily_outgoing_transactions_per_account_count
             (
                 collected_for_day           DATE   NOT NULL,
@@ -21,17 +21,17 @@ class DailyOutgoingTransactionsPerAccountCount(PeriodicAggregations):
             );
             CREATE INDEX IF NOT EXISTS daily_outgoing_transactions_per_account_count_idx
                 ON daily_outgoing_transactions_per_account_count (collected_for_day, outgoing_transactions_count DESC)
-        '''
+        """
 
     @property
     def sql_drop_table(self):
-        return '''
+        return """
             DROP TABLE IF EXISTS daily_outgoing_transactions_per_account_count
-        '''
+        """
 
     @property
     def sql_select(self):
-        return '''
+        return """
             SELECT
                 signer_account_id,
                 COUNT(*) AS outgoing_transactions_count
@@ -39,14 +39,14 @@ class DailyOutgoingTransactionsPerAccountCount(PeriodicAggregations):
             WHERE transactions.block_timestamp >= %(from_timestamp)s
                 AND transactions.block_timestamp < %(to_timestamp)s
             GROUP BY signer_account_id
-        '''
+        """
 
     @property
     def sql_insert(self):
-        return '''
+        return """
             INSERT INTO daily_outgoing_transactions_per_account_count VALUES %s
             ON CONFLICT DO NOTHING
-        '''
+        """
 
     @property
     def duration_seconds(self):
@@ -57,5 +57,7 @@ class DailyOutgoingTransactionsPerAccountCount(PeriodicAggregations):
 
     @staticmethod
     def prepare_data(parameters: list, *, start_of_range=None, **kwargs) -> list:
-        computed_for = datetime.datetime.utcfromtimestamp(start_of_range).strftime('%Y-%m-%d')
+        computed_for = datetime.datetime.utcfromtimestamp(start_of_range).strftime(
+            "%Y-%m-%d"
+        )
         return [(computed_for, account_id, count) for (account_id, count) in parameters]

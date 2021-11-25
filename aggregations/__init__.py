@@ -3,11 +3,15 @@ from .db_tables.daily_active_contracts_count import DailyActiveContractsCount
 from .db_tables.daily_deleted_accounts_count import DailyDeletedAccountsCount
 from .db_tables.daily_deposit_amount import DailyDepositAmount
 from .db_tables.daily_gas_used import DailyGasUsed
-from .db_tables.daily_ingoing_transactions_per_account_count import DailyIngoingTransactionsPerAccountCount
+from .db_tables.daily_ingoing_transactions_per_account_count import (
+    DailyIngoingTransactionsPerAccountCount,
+)
 from .db_tables.daily_new_accounts_count import DailyNewAccountsCount
 from .db_tables.daily_new_contracts_count import DailyNewContractsCount
 from .db_tables.daily_new_unique_contracts_count import DailyNewUniqueContractsCount
-from .db_tables.daily_outgoing_transactions_per_account_count import DailyOutgoingTransactionsPerAccountCount
+from .db_tables.daily_outgoing_transactions_per_account_count import (
+    DailyOutgoingTransactionsPerAccountCount,
+)
 from .db_tables.daily_receipts_per_contract_count import DailyReceiptsPerContractCount
 from .db_tables.daily_tokens_spent_on_fees import DailyTokensSpentOnFees
 from .db_tables.daily_transactions_count import DailyTransactionsCount

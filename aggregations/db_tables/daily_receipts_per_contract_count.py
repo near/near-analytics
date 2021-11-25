@@ -11,7 +11,7 @@ class DailyReceiptsPerContractCount(PeriodicAggregations):
         # In the worst case, they are all from one account.
         # It gives ~10^10 transactions per day.
         # It means we fit into BIGINT (10^18)
-        return '''
+        return """
             CREATE TABLE IF NOT EXISTS daily_receipts_per_contract_count
             (
                 collected_for_day DATE NOT NULL,
@@ -21,17 +21,17 @@ class DailyReceiptsPerContractCount(PeriodicAggregations):
             );
             CREATE INDEX IF NOT EXISTS daily_receipts_per_contract_count_idx
                 ON daily_receipts_per_contract_count (collected_for_day, receipts_count DESC)
-        '''
+        """
 
     @property
     def sql_drop_table(self):
-        return '''
+        return """
             DROP TABLE IF EXISTS daily_receipts_per_contract_count
-        '''
+        """
 
     @property
     def sql_select(self):
-        return '''
+        return """
             SELECT
                 action_receipt_actions.receipt_receiver_account_id,
                 COUNT(action_receipt_actions.receipt_id) AS receipts_count
@@ -40,14 +40,14 @@ class DailyReceiptsPerContractCount(PeriodicAggregations):
                 AND action_receipt_actions.receipt_included_in_block_timestamp >= %(from_timestamp)s
                 AND action_receipt_actions.receipt_included_in_block_timestamp < %(to_timestamp)s
             GROUP BY action_receipt_actions.receipt_receiver_account_id
-        '''
+        """
 
     @property
     def sql_insert(self):
-        return '''
+        return """
             INSERT INTO daily_receipts_per_contract_count VALUES %s
             ON CONFLICT DO NOTHING
-        '''
+        """
 
     @property
     def duration_seconds(self):
@@ -58,5 +58,9 @@ class DailyReceiptsPerContractCount(PeriodicAggregations):
 
     @staticmethod
     def prepare_data(parameters: list, *, start_of_range=None, **kwargs) -> list:
-        computed_for = datetime.datetime.utcfromtimestamp(start_of_range).strftime('%Y-%m-%d')
-        return [(computed_for, contract_id, count) for (contract_id, count) in parameters]
+        computed_for = datetime.datetime.utcfromtimestamp(start_of_range).strftime(
+            "%Y-%m-%d"
+        )
+        return [
+            (computed_for, contract_id, count) for (contract_id, count) in parameters
+        ]

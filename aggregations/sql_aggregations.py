@@ -48,7 +48,9 @@ class SqlAggregations(BaseAggregations):
 
     def collect(self, requested_timestamp: int) -> list:
         with self.indexer_connection.cursor() as indexer_cursor:
-            indexer_cursor.execute(self.sql_select, time_json(daily_start_of_range(requested_timestamp)))
+            indexer_cursor.execute(
+                self.sql_select, time_json(daily_start_of_range(requested_timestamp))
+            )
             result = indexer_cursor.fetchall()
             return self.prepare_data(result)
 
@@ -57,7 +59,11 @@ class SqlAggregations(BaseAggregations):
         with self.analytics_connection.cursor() as analytics_cursor:
             for i in range(0, len(parameters), chunk_size):
                 try:
-                    psycopg2.extras.execute_values(analytics_cursor, self.sql_insert, parameters[i:i + chunk_size])
+                    psycopg2.extras.execute_values(
+                        analytics_cursor,
+                        self.sql_insert,
+                        parameters[i : i + chunk_size],
+                    )
                     self.analytics_connection.commit()
                 except psycopg2.errors.UniqueViolation:
                     self.analytics_connection.rollback()

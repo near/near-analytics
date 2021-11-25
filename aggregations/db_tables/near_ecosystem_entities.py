@@ -5,7 +5,7 @@ from ..sql_aggregations import SqlAggregations
 class NearEcosystemEntities(SqlAggregations):
     @property
     def sql_create_table(self):
-        return '''
+        return """
             CREATE TABLE IF NOT EXISTS near_ecosystem_entities
             (
                 slug        TEXT PRIMARY KEY,
@@ -16,29 +16,28 @@ class NearEcosystemEntities(SqlAggregations):
                 status      TEXT, 
                 contract    TEXT
             )
-        '''
-
+        """
 
     @property
     def sql_drop_table(self):
-        return '''
+        return """
             DROP TABLE IF EXISTS near_ecosystem_entities
-        '''
+        """
+
     @property
     def sql_select(self):
-        pass        
+        pass
 
     @property
     def sql_insert(self):
-        return '''
+        return """
             INSERT INTO near_ecosystem_entities VALUES %s
             ON CONFLICT DO NOTHING
-        '''  
+        """
 
     def collect(self, requested_timestamp: int):
-        with open("aggregations/csv/near_ecosystem_entities.csv") as csvFile:   
-            read = csv.reader(csvFile, delimiter=',')
+        with open("aggregations/csv/near_ecosystem_entities.csv") as csvFile:
+            read = csv.reader(csvFile, delimiter=",")
             result = list(read)
             csvFile.close()
             return result
-           
