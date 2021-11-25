@@ -20,7 +20,9 @@ class DailyOutgoingTransactionsPerAccountCount(PeriodicAggregations):
                 CONSTRAINT daily_outgoing_transactions_per_account_count_pk PRIMARY KEY (collected_for_day, account_id)
             );
             CREATE INDEX IF NOT EXISTS daily_outgoing_transactions_per_account_count_idx
-                ON daily_outgoing_transactions_per_account_count (collected_for_day, outgoing_transactions_count DESC)
+                ON daily_outgoing_transactions_per_account_count (account_id, outgoing_transactions_count);
+            CREATE INDEX IF NOT EXISTS daily_outgoing_transactions_chart_idx
+                ON daily_outgoing_transactions_per_account_count (collected_for_day, outgoing_transactions_count)
         """
 
     @property
