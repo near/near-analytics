@@ -45,18 +45,26 @@ class DailyNewAccountsByAppCount(PeriodicAggregations):
 #            contract = ''
             contract = str(tuple[0])
             app = str(tuple[1])
-            string += str("WHEN args ->'access_key' -> 'permission' -> 'permission_details' ->> 'receiver_id' IN ('%%.' ||'"  + contract.strip()+ "' , '" + contract.strip()+ "') THEN '" +  app.strip() + "'")
+            string += str("WHEN args ->'access_key' -> 'permission' -> 'permission_details' ->> 'receiver_id' LIKE '"  + contract.strip() + "' THEN '" +  app.strip() + "'")
         
         opener = '''SELECT CASE '''
         closer = '''ELSE 'All Others' END as app_id ,
-        count(*) as new_accounts
-        FROM public.action_receipt_actions
+        count(DISTINCT receipt_receiver_account_id) as new_accounts
+        FROM public.action_receipt_actions a
         WHERE action_kind = 'ADD_KEY'
             AND args ->'access_key' -> 'permission' ->> 'permission_kind' = 'FUNCTION_CALL'
             AND args ->'access_key' -> 'permission' -> 'permission_details' ->> 'receiver_id' != receipt_receiver_account_id 
-            AND args ->'access_key' -> 'permission' -> 'permission_details' ->> 'receiver_id' != 'near'    
-            AND receipt_included_in_block_timestamp >= %(from_timestamp)s
-            AND receipt_included_in_block_timestamp < %(to_timestamp)s
+            AND args ->'access_key' -> 'permission' -> 'permission_details' ->> 'receiver_id' != 'near'
+            AND receipt_included_in_block_timestamp  >= %(from_timestamp)s
+            AND receipt_included_in_block_timestamp  < %(to_timestamp)s
+            AND exists (
+                    SELECT 1
+                    FROM action_receipt_actions a1
+                    WHERE a1.action_kind = 'ADD_KEY'
+                        AND a.receipt_receiver_account_id = a1.receipt_receiver_account_id 
+                        AND a1.receipt_included_in_block_timestamp  < %(to_timestamp)s
+                    HAVING count(*) >= 2 AND min(receipt_included_in_block_timestamp) >= %(from_timestamp)s
+                )   
         GROUP BY 1
         '''
         return str(opener) + str(string) + str(closer)
