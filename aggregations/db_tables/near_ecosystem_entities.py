@@ -1,5 +1,8 @@
 import csv
 from ..sql_aggregations import SqlAggregations
+import psycopg2
+import psycopg2.extras
+
 
 
 class NearEcosystemEntities(SqlAggregations):
@@ -15,10 +18,13 @@ class NearEcosystemEntities(SqlAggregations):
                 category    TEXT,    
                 status      TEXT, 
                 contract    TEXT,
-                logo        TEXT
+                logo        TEXT,
+                app         BOOLEAN,
+                nft         BOOLEAN,
+                guild       BOOLEAN 
+ 
             )
-        '''
-
+        '''     
 
     @property
     def sql_drop_table(self):
@@ -41,5 +47,29 @@ class NearEcosystemEntities(SqlAggregations):
             read = csv.reader(csvFile, delimiter=',')
             result = list(read)
             csvFile.close()
+            csv_columns_count = len(result[0])
+
+            with self.analytics_connection.cursor() as analytics_cursor:
+                sql_columns = '''
+                SELECT count(*) as columns 
+                FROM information_schema.columns 
+                WHERE table_name='near_ecosystem_entities'
+                '''
+
+
+                analytics_cursor.execute(sql_columns)
+                sql_columns_count = analytics_cursor.fetchone()[0]          
+                if sql_columns_count != csv_columns_count:
+                    print('updating table definition for near_ecosystem_entities')
+                    try:
+                        analytics_cursor.execute(self.sql_drop_table)
+                        self.analytics_connection.commit()
+                    except psycopg2.errors.UndefinedTable:
+                        self.analytics_connection.rollback()
+                    try:
+                        analytics_cursor.execute(self.sql_create_table)
+                        self.analytics_connection.commit()
+                    except psycopg2.errors.DuplicateTable:
+                        self.analytics_connection.rollback()
             return result
            
