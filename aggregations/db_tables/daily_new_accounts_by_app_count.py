@@ -5,12 +5,11 @@ from ..periodic_aggregations import PeriodicAggregations
 
 
 class DailyNewAccountsByAppCount(PeriodicAggregations):
+    def dependencies(self) -> list:
+        return ['near_ecosystem_entities']
+
     @property
     def sql_create_table(self):
-        # Suppose we have at most 10^5 (100K) transactions per second.
-        # In the worst case, they are all from one account.
-        # It gives ~10^10 transactions per day.
-        # It means we fit into BIGINT (10^18)
         return '''
             CREATE TABLE IF NOT EXISTS daily_new_accounts_by_app_count
             (
@@ -31,19 +30,16 @@ class DailyNewAccountsByAppCount(PeriodicAggregations):
 
     @property
     def sql_select(self):
-        # retrieve app data from near- analytics
         all_apps = '''
             SELECT token, slug as app_id
             FROM public.near_ecosystem_entities e, unnest(string_to_array(e.contract, ', ')) s(token)
-            WHERE category LIKE '%%app%%' AND length(contract)>0
+            WHERE app = TRUE AND length(contract)>0
         '''
 
         with self.analytics_connection.cursor() as analytics_cursor:
-            # Get all contracts that were added before our time range
             analytics_cursor.execute(all_apps)
             app_contracts = analytics_cursor.fetchall()
 
-        #concat table values into case statement
         string = ''
         for index, tuple in enumerate(app_contracts):
 #            contract = ''
