@@ -4,7 +4,6 @@ import psycopg2
 import psycopg2.extras
 
 
-
 class NearEcosystemEntities(SqlAggregations):
     @property
     def sql_create_table(self):
@@ -51,17 +50,16 @@ class NearEcosystemEntities(SqlAggregations):
             csv_columns_count = len(result[0])
 
             with self.analytics_connection.cursor() as analytics_cursor:
-                sql_columns = '''
+                sql_columns = """
                 SELECT count(*) as columns 
                 FROM information_schema.columns 
                 WHERE table_name='near_ecosystem_entities'
-                '''
-
+                """
 
                 analytics_cursor.execute(sql_columns)
-                sql_columns_count = analytics_cursor.fetchone()[0]          
+                sql_columns_count = analytics_cursor.fetchone()[0]
                 if sql_columns_count != csv_columns_count:
-                    print('updating table definition for near_ecosystem_entities')
+                    print("updating table definition for near_ecosystem_entities")
                     try:
                         analytics_cursor.execute(self.sql_drop_table)
                         self.analytics_connection.commit()
