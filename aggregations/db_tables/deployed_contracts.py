@@ -8,7 +8,7 @@ from ..sql_aggregations import SqlAggregations
 class DeployedContracts(SqlAggregations):
     @property
     def sql_create_table(self):
-        return '''
+        return """
             CREATE TABLE IF NOT EXISTS deployed_contracts
             (
                 code_sha256                      text PRIMARY KEY,
@@ -16,17 +16,17 @@ class DeployedContracts(SqlAggregations):
                 first_created_by_receipt_id      text           NOT NULL,
                 first_created_by_block_timestamp numeric(20, 0) NOT NULL
             )
-        '''
+        """
 
     @property
     def sql_drop_table(self):
-        return '''
+        return """
             DROP TABLE IF EXISTS deployed_contracts
-        '''
+        """
 
     @property
     def sql_select(self):
-        return '''
+        return """
             SELECT
                 action_receipt_actions.args->>'code_sha256' as code_sha256,
                 receipts.receiver_account_id as contract_id,
@@ -36,11 +36,11 @@ class DeployedContracts(SqlAggregations):
             JOIN receipts ON receipts.receipt_id = action_receipt_actions.receipt_id
             WHERE action_kind = 'DEPLOY_CONTRACT'
             ORDER BY receipts.included_in_block_timestamp
-        '''
+        """
 
     @property
     def sql_insert(self):
-        return '''
+        return """
             INSERT INTO deployed_contracts VALUES %s 
             ON CONFLICT DO NOTHING
-        '''
+        """
