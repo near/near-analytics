@@ -44,8 +44,8 @@ class DailyAddKeyByAppCount(PeriodicAggregations):
 
         string = ""
         for index, tuple in enumerate(app_contracts):
-            contract = str(tuple[0])
-            app = str(tuple[1])
+            contract = tuple[0]
+            app = tuple[1]
             string += (
                 "WHEN args ->'access_key' -> 'permission' -> 'permission_details' ->> 'receiver_id' LIKE '"
                 + contract.strip()
@@ -67,7 +67,6 @@ class DailyAddKeyByAppCount(PeriodicAggregations):
             AND receipt_included_in_block_timestamp  < %(to_timestamp)s
         GROUP BY 1,2
         """
-
         return str(opener) + str(string) + str(closer)
 
     @property
