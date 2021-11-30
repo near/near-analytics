@@ -9,23 +9,23 @@ class DailyDepositAmount(PeriodicAggregations):
         # In Indexer, we store all the balances in numeric(45,0), including total_supply.
         # Assuming the users move not more than total_supply inside each second,
         # I suggest to use numeric(50, 0)
-        return '''
+        return """
             CREATE TABLE IF NOT EXISTS daily_deposit_amount
             (
                 collected_for_day DATE PRIMARY KEY,
                 deposit_amount    numeric(50, 0) NOT NULL
             )
-        '''
+        """
 
     @property
     def sql_drop_table(self):
-        return '''
+        return """
             DROP TABLE IF EXISTS daily_deposit_amount
-        '''
+        """
 
     @property
     def sql_select(self):
-        return '''
+        return """
             SELECT SUM((action_receipt_actions.args->>'deposit')::numeric)
             FROM action_receipt_actions
             JOIN execution_outcomes ON execution_outcomes.receipt_id = action_receipt_actions.receipt_id
@@ -35,14 +35,14 @@ class DailyDepositAmount(PeriodicAggregations):
                 AND action_receipt_actions.action_kind IN ('FUNCTION_CALL', 'TRANSFER')
                 AND (action_receipt_actions.args->>'deposit')::numeric > 0
                 AND execution_outcomes.status IN ('SUCCESS_VALUE', 'SUCCESS_RECEIPT_ID')
-        '''
+        """
 
     @property
     def sql_insert(self):
-        return '''
+        return """
             INSERT INTO daily_deposit_amount VALUES %s
             ON CONFLICT DO NOTHING
-        '''
+        """
 
     @property
     def duration_seconds(self):
