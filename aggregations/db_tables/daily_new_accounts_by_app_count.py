@@ -40,9 +40,7 @@ class DailyNewAccountsByAppCount(PeriodicAggregations):
             analytics_cursor.execute(all_apps)
             app_contracts = analytics_cursor.fetchall()
 
-        string = ''
         for index, tuple in enumerate(app_contracts):
-#            contract = ''
             contract = str(tuple[0])
             app = str(tuple[1])
             string += str("WHEN args ->'access_key' -> 'permission' -> 'permission_details' ->> 'receiver_id' LIKE '"  + contract.strip() + "' THEN '" +  app.strip() + "'")
