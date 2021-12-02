@@ -1,13 +1,12 @@
-import csv
+import pandas as pd
+import numpy as np
 from ..sql_aggregations import SqlAggregations
-import psycopg2
-import psycopg2.extras
 
 
 class NearEcosystemEntities(SqlAggregations):
     @property
     def sql_create_table(self):
-        return """
+        return '''
             CREATE TABLE IF NOT EXISTS near_ecosystem_entities
             (
                 slug        TEXT PRIMARY KEY,
@@ -18,56 +17,57 @@ class NearEcosystemEntities(SqlAggregations):
                 status      TEXT, 
                 contract    TEXT,
                 logo        TEXT,
-                app         BOOLEAN,
-                nft         BOOLEAN,
-                guild       BOOLEAN 
- 
+                is_app      BOOLEAN,
+                is_nft      BOOLEAN,
+                is_guild    BOOLEAN,
+                is_defi     BOOLEAN,
+                is_dao      BOOLEAN  
+                                                
             )
-        """
+        '''
+
 
     @property
     def sql_drop_table(self):
-        return """
+        return '''
             DROP TABLE IF EXISTS near_ecosystem_entities
-        """
-
+        '''
     @property
     def sql_select(self):
-        pass
+        pass        
 
     @property
     def sql_insert(self):
-        return """
+        return '''
             INSERT INTO near_ecosystem_entities VALUES %s
-            ON CONFLICT DO NOTHING
-        """
+            ON CONFLICT DO NOTHING;
+            UPDATE near_ecosystem_entities SET slug = NULL WHERE slug = 'NaN'
+            UPDATE near_ecosystem_entities SET title  = NULL WHERE  title  = 'NaN'
+            UPDATE near_ecosystem_entities SET oneliner = NULL WHERE oneliner = 'NaN'
+            UPDATE near_ecosystem_entities SET website  = NULL WHERE website  = 'NaN'
+            UPDATE near_ecosystem_entities SET category = NULL WHERE category = 'NaN'
+            UPDATE near_ecosystem_entities SET status = NULL WHERE status  = 'NaN'
+            UPDATE near_ecosystem_entities SET contract = NULL WHERE contract = 'NaN'
+            UPDATE near_ecosystem_entities SET logo = NULL WHERE logo = 'NaN'
+        '''  
 
     def collect(self, requested_timestamp: int):
-        with open("aggregations/csv/near_ecosystem_entities.csv") as csvFile:
-            read = csv.reader(csvFile, delimiter=",")
-            result = list(read)
-            csvFile.close()
-            csv_columns_count = len(result[0])
+        url = "https://raw.githubusercontent.com/near/ecosystem/main/entities.json"
+        df = pd.read_json(url)
+        df1 = df[['slug', 'title', 'oneliner', 'website', 'category', 'status', 'contract', 'logo']]
 
-            with self.analytics_connection.cursor() as analytics_cursor:
-                sql_columns = """
-                SELECT count(*) as columns 
-                FROM information_schema.columns 
-                WHERE table_name='near_ecosystem_entities'
-                """
+        app = df1['category'].str.contains('app')
+        nft = df1['category'].str.contains('nft')
+        guild = df1['category'].str.contains('guild')
+        defi = df1['category'].str.contains('defi')
+        dao = df1['category'].str.contains('dao')
 
-                analytics_cursor.execute(sql_columns)
-                sql_columns_count = analytics_cursor.fetchone()[0]
-                if sql_columns_count != csv_columns_count:
-                    print("updating table definition for near_ecosystem_entities")
-                    try:
-                        analytics_cursor.execute(self.sql_drop_table)
-                        self.analytics_connection.commit()
-                    except psycopg2.errors.UndefinedTable:
-                        self.analytics_connection.rollback()
-                    try:
-                        analytics_cursor.execute(self.sql_create_table)
-                        self.analytics_connection.commit()
-                    except psycopg2.errors.DuplicateTable:
-                        self.analytics_connection.rollback()
-            return result
+        merged_df1 = df1.join(app, rsuffix = ('_app'))
+        merged_df2 = merged_df1.join(nft, rsuffix = ('_nft'))
+        merged_df3 = merged_df2.join(guild, rsuffix = ('_guild'))
+        merged_df4 = merged_df3.join(guild, rsuffix = ('_defi'))
+        merged_df5 = merged_df4.join(guild, rsuffix = ('_dao'))
+        
+        nan = merged_df5.fillna("")
+        output_values = nan.values
+        return output_values.tolist()
