@@ -32,9 +32,9 @@ class DailyAddKeyByAppCount(PeriodicAggregations):
     @property
     def sql_select(self):
         all_apps = """
-            SELECT token as contract_id, 
+            SELECT contract_id, 
             slug as app_id
-            FROM public.near_ecosystem_entities e, unnest(string_to_array(e.contract, ', ')) s(token)
+            FROM public.near_ecosystem_entities e, unnest(string_to_array(e.contract, ', ')) s(contract_id)
             WHERE app = TRUE AND length(contract)>0
         """
 
