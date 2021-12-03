@@ -43,15 +43,10 @@ class NearEcosystemEntities(SqlAggregations):
         """
 
     def collect(self, requested_timestamp: int):
-        url = "https://raw.githubusercontent.com/near/ecosystem/main/entities.json"
-        url_js ="https://raw.githubusercontent.com/jschintz/ecosystem/main/entities.json"
-        r = requests.get(url_js).text
-        data = []
-        data = json.loads(r)
+        pass
 
     def store(self, parameters: list):
         url = "https://raw.githubusercontent.com/near/ecosystem/main/entities.json"
-        url_js ="https://raw.githubusercontent.com/jschintz/ecosystem/main/entities.json"
         r = requests.get(url).text
         data = []
         data = json.loads(r)
