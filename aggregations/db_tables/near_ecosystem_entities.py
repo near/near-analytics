@@ -1,4 +1,4 @@
-import json,requests
+import json, requests
 from ..sql_aggregations import SqlAggregations
 
 
@@ -57,7 +57,7 @@ class NearEcosystemEntities(SqlAggregations):
         """
 
         with self.analytics_connection.cursor() as analytics_cursor:
-            #Remove & update schema
+            # Remove & update schema
             try:
                 analytics_cursor.execute(self.sql_drop_table)
                 self.analytics_connection.commit()
@@ -69,13 +69,27 @@ class NearEcosystemEntities(SqlAggregations):
             except psycopg2.errors.DuplicateTable:
                 self.analytics_connection.rollback()
 
-
             for record in data:
-                app = ('app' in record['category'])    
-                nft = ('nft' in record['category'])  
-                guild = ('guild' in record['category'])  
-                defi = ('defi' in record['category'])  
-                dao = ('dao' in record['category']) 
+                app = "app" in record["category"]
+                nft = "nft" in record["category"]
+                guild = "guild" in record["category"]
+                defi = "defi" in record["category"]
+                dao = "dao" in record["category"]
                 analytics_cursor.execute(
-                    sql_insert, [record.get('slug'), record.get('title'), record.get('oneliner'), record.get('website'), record.get('category'), record.get('status'), record.get('contract'), record.get('logo'), app, nft, guild, defi, dao]
+                    sql_insert,
+                    [
+                        record.get("slug"),
+                        record.get("title"),
+                        record.get("oneliner"),
+                        record.get("website"),
+                        record.get("category"),
+                        record.get("status"),
+                        record.get("contract"),
+                        record.get("logo"),
+                        app,
+                        nft,
+                        guild,
+                        defi,
+                        dao,
+                    ],
                 )
