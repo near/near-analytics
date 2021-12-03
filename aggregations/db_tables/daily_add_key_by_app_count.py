@@ -35,7 +35,7 @@ class DailyAddKeyByAppCount(PeriodicAggregations):
             SELECT contract_id, 
             slug as app_id
             FROM public.near_ecosystem_entities e, unnest(string_to_array(e.contract, ', ')) s(contract_id)
-            WHERE app = TRUE AND length(contract)>0
+            WHERE is_app = TRUE AND length(contract)>0
         """
 
         with self.analytics_connection.cursor() as analytics_cursor:
