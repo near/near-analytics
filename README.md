@@ -1,7 +1,7 @@
 # near-analytics
 
 Analytics Tool for NEAR Blockchain.  
-[NEAR Explorer](https://explorer.near.org/) uses it for [Mainnet](https://explorer.near.org/stats) and [Testnet](https://explorer.testnet.near.org/stats).
+[NEAR Explorer](https://explorer.near.org/) uses it for [mainnet](https://explorer.near.org/stats) and [testnet](https://explorer.testnet.near.org/stats).
 
 Raw data is available for your needs.
 

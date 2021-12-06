@@ -1,11 +1,11 @@
 # Contributing guide
 
-Thank you for your readiness to contribute to Near Analytics!  
+Thank you for your readiness to contribute to NEAR Analytics!  
 Please read this file before the start, it will simplify your life and make the review process faster.
 
 ## Overall idea
 
-We have [NEAR Indexer for Explorer](https://github.com/near/near-indexer-for-explorer) which collects the data streamed from Near Blockchain.
+We have [NEAR Indexer for Explorer](https://github.com/near/near-indexer-for-explorer) which collects the data streamed from NEAR blockchain.
 The resulting Indexer DB could be the best place for any sort of analytics, if only it were smaller.
 `receipts` table has 125M or records today (2021-12-03), just `count(*)` takes 5 minutes.
 
@@ -22,7 +22,7 @@ We split the advice into the categories below.
 ### General
 
 - The statistics should be general enough; it should be possible to reuse the collected data for other needs;
-- Use intuitive naming; naming should suit well with the one we use at other Near projects;
+- Use intuitive naming; naming should suit well with the one we use at other NEAR projects;
 - Write the documentation if it helps to understand the code; especially, write the documentation if you propose new entities.
 
 ### SQL
@@ -43,5 +43,5 @@ We split the advice into the categories below.
 
 - [ ] The PR includes exhaustive explanation, what is being added, why, how do you plan to use this data;
 - [ ] The PR includes performance measurements for the queries to the Indexer DB;
-- [ ] The code is tested properly. Please set up your own environment and make end-to-end testing by computing the data for 4-5 days. I kindly suggest using Testnet for testing purposes, the average load there is lower;
+- [ ] The code is tested properly. Please set up your own environment and make end-to-end testing by computing the data for 4-5 days. I kindly suggest using testnet for testing purposes, the average load there is lower;
 - [ ] Review the code yourself before assigning the reviewer.
