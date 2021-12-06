@@ -22,6 +22,11 @@ python3.9 -m pip install -r requirements.txt
 ```
 
 ### Run
+
 ```bash
 python3.9 main.py -h
 ```
+
+### Contribute
+
+See [Contributing Guide](CONTRIBUTING.md) for details
