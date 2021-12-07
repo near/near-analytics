@@ -1,10 +1,10 @@
 import datetime
 
-from . import DAY_LEN_SECONDS, daily_start_of_range, time_json
+from . import DAY_LEN_SECONDS, daily_start_of_range, time_range_json
 from ..periodic_aggregations import PeriodicAggregations
 
 
-# This metric depends both on Indexer data, and on `deployed_contracts` table in Analytics DB
+# This metric is computed based on `deployed_contracts` table in Analytics DB
 class DailyNewUniqueContractsCount(PeriodicAggregations):
     def dependencies(self) -> list:
         return ["deployed_contracts"]
@@ -29,14 +29,9 @@ class DailyNewUniqueContractsCount(PeriodicAggregations):
 
     @property
     def sql_select(self):
-        return """
-            SELECT DISTINCT args->>'code_sha256' as code_sha256 
-            FROM action_receipt_actions
-            JOIN receipts ON receipts.receipt_id = action_receipt_actions.receipt_id
-            WHERE receipts.included_in_block_timestamp >= %(from_timestamp)s
-                AND receipts.included_in_block_timestamp < %(to_timestamp)s
-                AND action_kind = 'DEPLOY_CONTRACT'
-        """
+        raise NotImplementedError(
+            "No requests to Indexer DB needed for daily_new_unique_contracts_count"
+        )
 
     @property
     def sql_insert(self):
@@ -46,33 +41,21 @@ class DailyNewUniqueContractsCount(PeriodicAggregations):
         """
 
     def collect(self, requested_timestamp: int) -> list:
-        # Get new contracts from Indexer DB. We use `distinct` in SQL,
-        # But we still have no guarantees because the contract could be added a week ago
-        new_contracts = super().collect(requested_timestamp)
-
-        all_contract_hashes_select = """
-            SELECT code_sha256
+        new_unique_hashes_select = """
+            SELECT COUNT(code_sha256)
             FROM deployed_contracts
-            WHERE first_created_by_block_timestamp < %(timestamp)s
+            WHERE first_created_by_block_timestamp >= %(from_timestamp)s
+                AND first_created_by_block_timestamp < %(to_timestamp)s
         """
 
         from_timestamp = self.start_of_range(requested_timestamp)
         with self.analytics_connection.cursor() as analytics_cursor:
-            # Get all contracts that were added before our time range
             analytics_cursor.execute(
-                all_contract_hashes_select, time_json(from_timestamp)
+                new_unique_hashes_select,
+                time_range_json(from_timestamp, self.duration_seconds),
             )
-            previous_contracts = analytics_cursor.fetchall()
-
-            # Find truly unique contracts
-            new_unique_contracts = [
-                c for c in new_contracts if c not in previous_contracts
-            ]
-
-            time = datetime.datetime.utcfromtimestamp(from_timestamp).strftime(
-                "%Y-%m-%d"
-            )
-            return [(time, len(new_unique_contracts))]
+            result = analytics_cursor.fetchall()
+            return self.prepare_data(result, start_of_range=from_timestamp)
 
     @property
     def duration_seconds(self):
@@ -80,7 +63,3 @@ class DailyNewUniqueContractsCount(PeriodicAggregations):
 
     def start_of_range(self, timestamp: int) -> int:
         return daily_start_of_range(timestamp)
-
-    @staticmethod
-    def prepare_data(parameters, **kwargs) -> list:
-        return parameters
