@@ -13,6 +13,7 @@ from aggregations import (
     DailyGasUsed,
     DailyIngoingTransactionsPerAccountCount,
     DailyNewAccountsCount,
+    DailyNewAccountsPerEntityCount,
     DailyNewContractsCount,
     DailyNewUniqueContractsCount,
     DailyOutgoingTransactionsPerAccountCount,
@@ -20,6 +21,7 @@ from aggregations import (
     DailyTokensSpentOnFees,
     DailyTransactionsCount,
     DeployedContracts,
+    EntityAddedAccounts,
     WeeklyActiveAccountsCount,
     NearEcosystemEntities,
 )
@@ -36,6 +38,7 @@ STATS = {
     "daily_gas_used": DailyGasUsed,
     "daily_ingoing_transactions_per_account_count": DailyIngoingTransactionsPerAccountCount,
     "daily_new_accounts_count": DailyNewAccountsCount,
+    "daily_new_accounts_per_entity_count": DailyNewAccountsPerEntityCount,
     "daily_new_contracts_count": DailyNewContractsCount,
     "daily_new_unique_contracts_count": DailyNewUniqueContractsCount,
     "daily_outgoing_transactions_per_account_count": DailyOutgoingTransactionsPerAccountCount,
@@ -43,6 +46,7 @@ STATS = {
     "daily_tokens_spent_on_fees": DailyTokensSpentOnFees,
     "daily_transactions_count": DailyTransactionsCount,
     "deployed_contracts": DeployedContracts,
+    "entity_added_accounts": EntityAddedAccounts,
     "weekly_active_accounts_count": WeeklyActiveAccountsCount,
     "near_ecosystem_entities": NearEcosystemEntities,
 }
