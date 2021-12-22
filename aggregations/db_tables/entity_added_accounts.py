@@ -16,17 +16,11 @@ class EntityAddedAccounts(SqlAggregations):
         return """
             CREATE TABLE IF NOT EXISTS entity_added_accounts
             (
-                entity_id                           TEXT,
-                account_id                          TEXT,
-                added_at_block_timestamp            BIGINT,
-                PRIMARY KEY (entity_id, account_id) -- DRAFT PR COMMENT: what are the implications of including date? can a user be removed from an entity?
+                entity_id                           TEXT NOT NULL,
+                account_id                          TEXT NOT NULL,
+                added_at_block_timestamp            BIGINT NOT NULL,
+                CONSTRAINT entity_added_accounts_pk PRIMARY KEY (entity_id, account_id)
             );
-            -- intent: these indexes should build reasonably quickly compared to the runtime of the query but if they take more time than they save, please remove them!
-            CREATE INDEX IF NOT EXISTS entity_added_accounts_timestamp_entity_idx  ON entity_added_accounts (added_at_block_timestamp, entity_id);
-            CREATE INDEX IF NOT EXISTS entity_added_accounts_timestamp_account_idx ON entity_added_accounts (added_at_block_timestamp, account_id);
-         
-            CREATE INDEX IF NOT EXISTS entity_added_accounts_entity_idx  ON entity_added_accounts (entity_id);
-            CREATE INDEX IF NOT EXISTS entity_added_accounts_account_idx ON entity_added_accounts (account_id);
         """
 
     @property
