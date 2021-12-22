@@ -7,7 +7,9 @@ from .db_tables.daily_ingoing_transactions_per_account_count import (
     DailyIngoingTransactionsPerAccountCount,
 )
 from .db_tables.daily_new_accounts_count import DailyNewAccountsCount
-from .db_tables.daily_new_accounts_per_entity_count import DailyNewAccountsPerEntityCount
+from .db_tables.daily_new_accounts_per_entity_count import (
+    DailyNewAccountsPerEntityCount,
+)
 from .db_tables.daily_new_contracts_count import DailyNewContractsCount
 from .db_tables.daily_new_unique_contracts_count import DailyNewUniqueContractsCount
 from .db_tables.daily_outgoing_transactions_per_account_count import (

@@ -70,5 +70,7 @@ class DailyNewAccountsPerEntityCount(PeriodicAggregations):
 
     @staticmethod
     def prepare_data(parameters: list, **kwargs) -> list:
-        computed_for = datetime.datetime.utcfromtimestamp(kwargs['start_of_range']).strftime('%Y-%m-%d')
+        computed_for = datetime.datetime.utcfromtimestamp(
+            kwargs["start_of_range"]
+        ).strftime("%Y-%m-%d")
         return [(computed_for, entity_id, count) for (entity_id, count) in parameters]

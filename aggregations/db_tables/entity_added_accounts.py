@@ -6,6 +6,7 @@ relating accounts ("added_accounts") to ecosystem entities ("entities")
 and is originally intended to be used for tracking new accounts added to each entity.
 """
 
+
 class EntityAddedAccounts(SqlAggregations):
     def dependencies(self) -> list:
         return ["near_ecosystem_entities"]
@@ -50,10 +51,12 @@ class EntityAddedAccounts(SqlAggregations):
         with self.analytics_connection.cursor() as analytics_cursor:
             analytics_cursor.execute(entity_contracts_sql)
             entity_contracts = analytics_cursor.fetchall()
-        
+
         indented_newline = "                    \n"
-        cases_sql = indented_newline.join([f"WHEN '{c}' THEN '{e}'" for e, c in entity_contracts])
-        
+        cases_sql = indented_newline.join(
+            [f"WHEN '{c}' THEN '{e}'" for e, c in entity_contracts]
+        )
+
         return """
             WITH
             added_to_entity_events AS
@@ -75,7 +78,9 @@ class EntityAddedAccounts(SqlAggregations):
             FROM added_to_entity_events
             WHERE entity_id NOT IN (account_id, 'near')
             GROUP BY 1, 2
-            """.format(cases_sql=cases_sql)
+            """.format(
+            cases_sql=cases_sql
+        )
 
     @property
     def sql_insert(self):
