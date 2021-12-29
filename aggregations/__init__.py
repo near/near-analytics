@@ -1,3 +1,4 @@
+from .db_tables.daily_accounts_added_per_entity import DailyAccountsAddedPerEntity
 from .db_tables.daily_active_accounts_count import DailyActiveAccountsCount
 from .db_tables.daily_active_contracts_count import DailyActiveContractsCount
 from .db_tables.daily_deleted_accounts_count import DailyDeletedAccountsCount
@@ -19,6 +20,5 @@ from .db_tables.daily_receipts_per_contract_count import DailyReceiptsPerContrac
 from .db_tables.daily_tokens_spent_on_fees import DailyTokensSpentOnFees
 from .db_tables.daily_transactions_count import DailyTransactionsCount
 from .db_tables.deployed_contracts import DeployedContracts
-from .db_tables.entity_added_accounts import EntityAddedAccounts
 from .db_tables.weekly_active_accounts_count import WeeklyActiveAccountsCount
 from .db_tables.near_ecosystem_entities import NearEcosystemEntities

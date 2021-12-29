@@ -4,10 +4,10 @@ from . import DAY_LEN_SECONDS, daily_start_of_range, time_range_json
 from ..periodic_aggregations import PeriodicAggregations
 
 
-# This metric is computed based on `entity_added_accounts` table in Analytics DB
+# This metric is computed based on `daily_accounts_added_per_entity` table in Analytics DB
 class DailyNewAccountsPerEntityCount(PeriodicAggregations):
     def dependencies(self) -> list:
-        return ["entity_added_accounts"]
+        return ["daily_accounts_added_per_entity"]
 
     @property
     def sql_create_table(self):
@@ -45,7 +45,7 @@ class DailyNewAccountsPerEntityCount(PeriodicAggregations):
             SELECT
               entity_id,
               COUNT(*) as new_accounts_count
-            FROM entity_added_accounts
+            FROM daily_accounts_added_per_entity
             WHERE
               added_at_block_timestamp >= %(from_timestamp)s
               AND added_at_block_timestamp < %(to_timestamp)s

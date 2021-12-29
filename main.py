@@ -6,6 +6,7 @@ import time
 import typing
 
 from aggregations import (
+    DailyAccountsAddedPerEntity,
     DailyActiveAccountsCount,
     DailyActiveContractsCount,
     DailyDeletedAccountsCount,
@@ -21,7 +22,6 @@ from aggregations import (
     DailyTokensSpentOnFees,
     DailyTransactionsCount,
     DeployedContracts,
-    EntityAddedAccounts,
     WeeklyActiveAccountsCount,
     NearEcosystemEntities,
 )
@@ -31,6 +31,7 @@ from datetime import datetime
 
 # TODO maybe we want to get rid of this list somehow
 STATS = {
+    "daily_accounts_added_per_entity": DailyAccountsAddedPerEntity,
     "daily_active_accounts_count": DailyActiveAccountsCount,
     "daily_active_contracts_count": DailyActiveContractsCount,
     "daily_deleted_accounts_count": DailyDeletedAccountsCount,
@@ -46,7 +47,6 @@ STATS = {
     "daily_tokens_spent_on_fees": DailyTokensSpentOnFees,
     "daily_transactions_count": DailyTransactionsCount,
     "deployed_contracts": DeployedContracts,
-    "entity_added_accounts": EntityAddedAccounts,
     "weekly_active_accounts_count": WeeklyActiveAccountsCount,
     "near_ecosystem_entities": NearEcosystemEntities,
 }

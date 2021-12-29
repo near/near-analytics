@@ -1,4 +1,5 @@
-from ..sql_aggregations import SqlAggregations
+from . import DAY_LEN_SECONDS, daily_start_of_range
+from ..periodic_aggregations import PeriodicAggregations
 
 """
 This code builds a table intended to assist with calculating statistics
@@ -7,26 +8,26 @@ and is originally intended to be used for tracking new accounts added to each en
 """
 
 
-class EntityAddedAccounts(SqlAggregations):
+class DailyAccountsAddedPerEntity(PeriodicAggregations):
     def dependencies(self) -> list:
         return ["near_ecosystem_entities"]
 
     @property
     def sql_create_table(self):
         return """
-            CREATE TABLE IF NOT EXISTS entity_added_accounts
+            CREATE TABLE IF NOT EXISTS daily_accounts_added_per_entity
             (
                 entity_id                           TEXT NOT NULL,
                 account_id                          TEXT NOT NULL,
                 added_at_block_timestamp            BIGINT NOT NULL,
-                CONSTRAINT entity_added_accounts_pk PRIMARY KEY (entity_id, account_id)
+                CONSTRAINT daily_accounts_added_per_entity_pk PRIMARY KEY (entity_id, account_id)
             );
         """
 
     @property
     def sql_drop_table(self):
         return """
-            DROP TABLE IF EXISTS entity_added_accounts
+            DROP TABLE IF EXISTS daily_accounts_added_per_entity
             """
 
     @property
@@ -64,6 +65,8 @@ class EntityAddedAccounts(SqlAggregations):
                 FROM public.action_receipt_actions
                 WHERE action_kind IN ('ADD_KEY')
                     AND args ->'access_key' -> 'permission' ->> 'permission_kind' = 'FUNCTION_CALL'
+                    AND receipt_included_in_block_timestamp  >= %(from_timestamp)s
+                    AND receipt_included_in_block_timestamp  < %(to_timestamp)s
                 GROUP BY 1, 2, 3
             )
             SELECT entity_id,
@@ -79,6 +82,17 @@ class EntityAddedAccounts(SqlAggregations):
     @property
     def sql_insert(self):
         return """
-            INSERT INTO entity_added_accounts VALUES %s 
+            INSERT INTO daily_accounts_added_per_entity VALUES %s 
             ON CONFLICT DO NOTHING
         """
+
+    @property
+    def duration_seconds(self):
+        return DAY_LEN_SECONDS
+
+    def start_of_range(self, timestamp: int) -> int:
+        return daily_start_of_range(timestamp)
+
+    @staticmethod
+    def prepare_data(parameters: list, **kwargs) -> list:
+        return parameters
