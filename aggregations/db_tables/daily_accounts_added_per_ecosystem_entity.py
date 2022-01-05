@@ -8,26 +8,26 @@ and is originally intended to be used for tracking new accounts added to each en
 """
 
 
-class DailyAccountsAddedPerEntity(PeriodicAggregations):
+class DailyAccountsAddedPerEcosystemEntity(PeriodicAggregations):
     def dependencies(self) -> list:
         return ["near_ecosystem_entities"]
 
     @property
     def sql_create_table(self):
         return """
-            CREATE TABLE IF NOT EXISTS daily_accounts_added_per_entity
+            CREATE TABLE IF NOT EXISTS daily_accounts_added_per_ecosystem_entity
             (
                 entity_id                           TEXT NOT NULL,
                 account_id                          TEXT NOT NULL,
                 added_at_block_timestamp            numeric(20, 0) NOT NULL,
-                CONSTRAINT daily_accounts_added_per_entity_pk PRIMARY KEY (entity_id, account_id)
+                CONSTRAINT daily_accounts_added_per_ecosystem_entity_pk PRIMARY KEY (entity_id, account_id)
             );
         """
 
     @property
     def sql_drop_table(self):
         return """
-            DROP TABLE IF EXISTS daily_accounts_added_per_entity
+            DROP TABLE IF EXISTS daily_accounts_added_per_ecosystem_entity
             """
 
     @property
@@ -82,7 +82,7 @@ class DailyAccountsAddedPerEntity(PeriodicAggregations):
     @property
     def sql_insert(self):
         return """
-            INSERT INTO daily_accounts_added_per_entity VALUES %s 
+            INSERT INTO daily_accounts_added_per_ecosystem_entity VALUES %s 
             ON CONFLICT DO NOTHING
         """
 

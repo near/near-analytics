@@ -1,4 +1,4 @@
-from .db_tables.daily_accounts_added_per_entity import DailyAccountsAddedPerEntity
+from .db_tables.daily_accounts_added_per_ecosystem_entity import DailyAccountsAddedPerEcosystemEntity
 from .db_tables.daily_active_accounts_count import DailyActiveAccountsCount
 from .db_tables.daily_active_contracts_count import DailyActiveContractsCount
 from .db_tables.daily_deleted_accounts_count import DailyDeletedAccountsCount
@@ -8,8 +8,8 @@ from .db_tables.daily_ingoing_transactions_per_account_count import (
     DailyIngoingTransactionsPerAccountCount,
 )
 from .db_tables.daily_new_accounts_count import DailyNewAccountsCount
-from .db_tables.daily_new_accounts_per_entity_count import (
-    DailyNewAccountsPerEntityCount,
+from .db_tables.daily_new_accounts_per_ecosystem_entity_count import (
+    DailyNewAccountsPerEcosystemEntityCount,
 )
 from .db_tables.daily_new_contracts_count import DailyNewContractsCount
 from .db_tables.daily_new_unique_contracts_count import DailyNewUniqueContractsCount

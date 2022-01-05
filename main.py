@@ -6,7 +6,7 @@ import time
 import typing
 
 from aggregations import (
-    DailyAccountsAddedPerEntity,
+    DailyAccountsAddedPerEcosystemEntity,
     DailyActiveAccountsCount,
     DailyActiveContractsCount,
     DailyDeletedAccountsCount,
@@ -14,7 +14,7 @@ from aggregations import (
     DailyGasUsed,
     DailyIngoingTransactionsPerAccountCount,
     DailyNewAccountsCount,
-    DailyNewAccountsPerEntityCount,
+    DailyNewAccountsPerEcosystemEntityCount,
     DailyNewContractsCount,
     DailyNewUniqueContractsCount,
     DailyOutgoingTransactionsPerAccountCount,
@@ -31,7 +31,7 @@ from datetime import datetime
 
 # TODO maybe we want to get rid of this list somehow
 STATS = {
-    "daily_accounts_added_per_entity": DailyAccountsAddedPerEntity,
+    "daily_accounts_added_per_ecosystem_entity": DailyAccountsAddedPerEcosystemEntity,
     "daily_active_accounts_count": DailyActiveAccountsCount,
     "daily_active_contracts_count": DailyActiveContractsCount,
     "daily_deleted_accounts_count": DailyDeletedAccountsCount,
@@ -39,7 +39,7 @@ STATS = {
     "daily_gas_used": DailyGasUsed,
     "daily_ingoing_transactions_per_account_count": DailyIngoingTransactionsPerAccountCount,
     "daily_new_accounts_count": DailyNewAccountsCount,
-    "daily_new_accounts_per_entity_count": DailyNewAccountsPerEntityCount,
+    "daily_new_accounts_per_ecosystem_entity_count": DailyNewAccountsPerEcosystemEntityCount,
     "daily_new_contracts_count": DailyNewContractsCount,
     "daily_new_unique_contracts_count": DailyNewUniqueContractsCount,
     "daily_outgoing_transactions_per_account_count": DailyOutgoingTransactionsPerAccountCount,

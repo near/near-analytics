@@ -4,39 +4,39 @@ from . import DAY_LEN_SECONDS, daily_start_of_range, time_range_json
 from ..periodic_aggregations import PeriodicAggregations
 
 
-# This metric is computed based on `daily_accounts_added_per_entity` table in Analytics DB
-class DailyNewAccountsPerEntityCount(PeriodicAggregations):
+# This metric is computed based on `daily_accounts_added_per_ecosystem_entity` table in Analytics DB
+class DailyNewAccountsPerEcosystemEntityCount(PeriodicAggregations):
     def dependencies(self) -> list:
-        return ["daily_accounts_added_per_entity"]
+        return ["daily_accounts_added_per_ecosystem_entity"]
 
     @property
     def sql_create_table(self):
         return """
-            CREATE TABLE IF NOT EXISTS daily_new_accounts_per_entity_count
+            CREATE TABLE IF NOT EXISTS daily_new_accounts_per_ecosystem_entity_count
             (
                 collected_for_day          DATE NOT NULL,
                 entity_id                  TEXT NOT NULL,
                 new_accounts_count         BIGINT  NOT NULL,
-                CONSTRAINT daily_new_accounts_per_entity_count_pk PRIMARY KEY (collected_for_day, entity_id)
+                CONSTRAINT daily_new_accounts_per_ecosystem_entity_count_pk PRIMARY KEY (collected_for_day, entity_id)
             )
         """
 
     @property
     def sql_drop_table(self):
         return """
-            DROP TABLE IF EXISTS daily_new_accounts_per_entity_count
+            DROP TABLE IF EXISTS daily_new_accounts_per_ecosystem_entity_count
         """
 
     @property
     def sql_select(self):
         raise NotImplementedError(
-            "no reason to request from Indexer DB for daily_new_accounts_per_entity_count"
+            "no reason to request from Indexer DB for daily_new_accounts_per_ecosystem_entity_count"
         )
 
     @property
     def sql_insert(self):
         return """
-            INSERT INTO daily_new_accounts_per_entity_count VALUES %s
+            INSERT INTO daily_new_accounts_per_ecosystem_entity_count VALUES %s
             ON CONFLICT DO NOTHING
         """
 
@@ -45,7 +45,7 @@ class DailyNewAccountsPerEntityCount(PeriodicAggregations):
             SELECT
               entity_id,
               COUNT(*) as new_accounts_count
-            FROM daily_accounts_added_per_entity
+            FROM daily_accounts_added_per_ecosystem_entity
             WHERE
               added_at_block_timestamp >= %(from_timestamp)s
               AND added_at_block_timestamp < %(to_timestamp)s
