@@ -19,7 +19,7 @@ class DailyAccountsAddedPerEntity(PeriodicAggregations):
             (
                 entity_id                           TEXT NOT NULL,
                 account_id                          TEXT NOT NULL,
-                added_at_block_timestamp            BIGINT NOT NULL,
+                added_at_block_timestamp            numeric(20, 0) NOT NULL,
                 CONSTRAINT daily_accounts_added_per_entity_pk PRIMARY KEY (entity_id, account_id)
             );
         """
