@@ -1,4 +1,6 @@
-from .db_tables.daily_accounts_added_per_ecosystem_entity import DailyAccountsAddedPerEcosystemEntity
+from .db_tables.daily_accounts_added_per_ecosystem_entity import (
+    DailyAccountsAddedPerEcosystemEntity,
+)
 from .db_tables.daily_active_accounts_count import DailyActiveAccountsCount
 from .db_tables.daily_active_contracts_count import DailyActiveContractsCount
 from .db_tables.daily_deleted_accounts_count import DailyDeletedAccountsCount
