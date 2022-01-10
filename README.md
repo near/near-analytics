@@ -30,3 +30,7 @@ python3.9 main.py -h
 ### Contribute
 
 See [Contributing Guide](CONTRIBUTING.md) for details
+
+### Usage examples
+
+Apart from [NEAR Explorer](https://explorer.near.org/stats), see [nice blogpost](https://analyticali.substack.com/p/near-analytics-cheatsheet) with the tutorial and beautiful pictures based on NEAR Analytics data.
