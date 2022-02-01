@@ -4,10 +4,10 @@ from . import DAY_LEN_SECONDS, daily_start_of_range, time_range_json
 from ..periodic_aggregations import PeriodicAggregations
 
 
-# This metric is computed based on `deployed_contracts` table in Analytics DB
+# This metric is computed based on `daily_deployed_contracts` table in Analytics DB
 class DailyNewUniqueContractsCount(PeriodicAggregations):
     def dependencies(self) -> list:
-        return ["deployed_contracts"]
+        return ["daily_deployed_contracts"]
 
     @property
     def sql_create_table(self):
@@ -42,10 +42,16 @@ class DailyNewUniqueContractsCount(PeriodicAggregations):
 
     def collect(self, requested_timestamp: int) -> list:
         new_unique_hashes_select = """
-            SELECT COUNT(code_sha256)
-            FROM deployed_contracts
-            WHERE first_created_by_block_timestamp >= %(from_timestamp)s
-                AND first_created_by_block_timestamp < %(to_timestamp)s
+            SELECT COUNT(*) FROM (
+            SELECT DISTINCT contract_code_sha256
+            FROM daily_deployed_contracts
+            WHERE deployed_by_block_timestamp >= %(from_timestamp)s
+                AND deployed_by_block_timestamp < %(to_timestamp)s
+            EXCEPT
+            SELECT contract_code_sha256
+            FROM daily_deployed_contracts
+            WHERE deployed_by_block_timestamp < %(from_timestamp)s
+            )
         """
 
         from_timestamp = self.start_of_range(requested_timestamp)

@@ -21,7 +21,7 @@ from aggregations import (
     DailyReceiptsPerContractCount,
     DailyTokensSpentOnFees,
     DailyTransactionsCount,
-    DeployedContracts,
+    DailyDeployedContracts,
     WeeklyActiveAccountsCount,
     NearEcosystemEntities,
 )
@@ -46,7 +46,7 @@ STATS = {
     "daily_receipts_per_contract_count": DailyReceiptsPerContractCount,
     "daily_tokens_spent_on_fees": DailyTokensSpentOnFees,
     "daily_transactions_count": DailyTransactionsCount,
-    "deployed_contracts": DeployedContracts,
+    "daily_deployed_contracts": DailyDeployedContracts,
     "weekly_active_accounts_count": WeeklyActiveAccountsCount,
     "near_ecosystem_entities": NearEcosystemEntities,
 }
