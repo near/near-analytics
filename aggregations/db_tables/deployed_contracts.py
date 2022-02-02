@@ -34,7 +34,7 @@ class DeployedContracts(PeriodicAggregations):
                 action_receipt_actions.args->>'code_sha256' as contract_code_sha256,
                 receipts.receiver_account_id as deployed_to_account_id,
                 receipts.receipt_id as deployed_by_receipt_id,
-                receipts.included_in_block_timestamp as deployed_by_block_timestamp
+                receipts.included_in_block_timestamp as deployed_at_block_timestamp
             FROM action_receipt_actions
             JOIN receipts ON receipts.receipt_id = action_receipt_actions.receipt_id
             WHERE action_kind = 'DEPLOY_CONTRACT'

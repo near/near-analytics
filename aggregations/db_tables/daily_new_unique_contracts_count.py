@@ -4,7 +4,7 @@ from . import DAY_LEN_SECONDS, daily_start_of_range, time_range_json
 from ..periodic_aggregations import PeriodicAggregations
 
 
-# This metric is computed based on `daily_deployed_contracts` table in Analytics DB
+# This metric is computed based on `deployed_contracts` table in Analytics DB
 class DailyNewUniqueContractsCount(PeriodicAggregations):
     def dependencies(self) -> list:
         return ["deployed_contracts"]
