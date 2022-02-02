@@ -16,7 +16,7 @@ class DeployedContracts(PeriodicAggregations):
                 deployed_at_block_timestamp numeric(20, 0) NOT NULL
             );
             CREATE INDEX IF NOT EXISTS deployed_contracts_timestamp_idx
-                ON deployed_contracts (deployed_by_block_timestamp);
+                ON deployed_contracts (deployed_at_block_timestamp);
             CREATE INDEX IF NOT EXISTS deployed_contracts_sha256_idx
                 ON deployed_contracts (contract_code_sha256)
         """
