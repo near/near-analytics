@@ -42,10 +42,16 @@ class DailyNewUniqueContractsCount(PeriodicAggregations):
 
     def collect(self, requested_timestamp: int) -> list:
         new_unique_hashes_select = """
-            SELECT COUNT(code_sha256)
+            SELECT COUNT(*) FROM (
+            SELECT DISTINCT contract_code_sha256
             FROM deployed_contracts
-            WHERE first_created_by_block_timestamp >= %(from_timestamp)s
-                AND first_created_by_block_timestamp < %(to_timestamp)s
+            WHERE deployed_at_block_timestamp >= %(from_timestamp)s
+                AND deployed_at_block_timestamp < %(to_timestamp)s
+            EXCEPT
+            SELECT contract_code_sha256
+            FROM deployed_contracts
+            WHERE deployed_at_block_timestamp < %(from_timestamp)s
+            ) deployed_contract_hashes
         """
 
         from_timestamp = self.start_of_range(requested_timestamp)
