@@ -2,29 +2,29 @@ from . import DAY_LEN_SECONDS, daily_start_of_range
 from ..periodic_aggregations import PeriodicAggregations
 
 
-class DailyDeployedContracts(PeriodicAggregations):
+class DeployedContracts(PeriodicAggregations):
     @property
     def sql_create_table(self):
         return """
-            CREATE TABLE IF NOT EXISTS daily_deployed_contracts
+            CREATE TABLE IF NOT EXISTS deployed_contracts
             (
                 contract_code_sha256        text           NOT NULL,
                 deployed_to_account_id      text           NOT NULL,
                 deployed_by_receipt_id      text           PRIMARY KEY,
                 -- It is important to store here not only day, but the exact timestamp
                 -- Because there could be several deployments at the same day
-                deployed_by_block_timestamp numeric(20, 0) NOT NULL
+                deployed_at_block_timestamp numeric(20, 0) NOT NULL
             );
-            CREATE INDEX IF NOT EXISTS daily_deployed_contracts_timestamp_idx
-                ON daily_deployed_contracts (deployed_by_block_timestamp);
-            CREATE INDEX IF NOT EXISTS daily_deployed_contracts_sha256_idx
-                ON daily_deployed_contracts (contract_code_sha256)
+            CREATE INDEX IF NOT EXISTS deployed_contracts_timestamp_idx
+                ON deployed_contracts (deployed_by_block_timestamp);
+            CREATE INDEX IF NOT EXISTS deployed_contracts_sha256_idx
+                ON deployed_contracts (contract_code_sha256)
         """
 
     @property
     def sql_drop_table(self):
         return """
-            DROP TABLE IF EXISTS daily_deployed_contracts
+            DROP TABLE IF EXISTS deployed_contracts
         """
 
     @property
@@ -46,7 +46,7 @@ class DailyDeployedContracts(PeriodicAggregations):
     @property
     def sql_insert(self):
         return """
-            INSERT INTO daily_deployed_contracts VALUES %s 
+            INSERT INTO deployed_contracts VALUES %s 
             ON CONFLICT DO NOTHING
         """
 
