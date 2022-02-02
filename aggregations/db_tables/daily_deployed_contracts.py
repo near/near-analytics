@@ -56,3 +56,7 @@ class DailyDeployedContracts(PeriodicAggregations):
 
     def start_of_range(self, timestamp: int) -> int:
         return daily_start_of_range(timestamp)
+
+    @staticmethod
+    def prepare_data(parameters: list, *, start_of_range=None, **kwargs) -> list:
+        return parameters
