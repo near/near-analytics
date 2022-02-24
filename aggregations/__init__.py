@@ -20,6 +20,9 @@ from .db_tables.daily_outgoing_transactions_per_account_count import (
 )
 from .db_tables.daily_receipts_per_contract_count import DailyReceiptsPerContractCount
 from .db_tables.daily_tokens_spent_on_fees import DailyTokensSpentOnFees
+from .db_tables.daily_transaction_count_by_gas_burnt_ranges import (
+    DailyTransactionCountByGasBurntRanges,
+)
 from .db_tables.daily_transactions_count import DailyTransactionsCount
 from .db_tables.deployed_contracts import DeployedContracts
 from .db_tables.weekly_active_accounts_count import WeeklyActiveAccountsCount
